@@ -1,6 +1,6 @@
 # Azure Digital Twins Project Tasks
 
-1. [ ] Script to create DT service in resource group.
+1. [x] Script to create DT service in resource group.
 2. [ ] Create Stadium model.
 3. [ ] Create ticket scanner model.
 4. [ ] Create season ticket holder model.
