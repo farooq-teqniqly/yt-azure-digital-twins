@@ -1,0 +1,30 @@
+{
+  "@context": "dtmi:dtdl:context;2",
+  "@id": "dtmi:com:thewineshoppe:WineRack;1",
+  "@type": "Interface",
+  "displayName": "Wine Rack",
+  "contents": [
+    {
+      "@type": "Property",
+      "name": "slotDimensions",
+      "schema": {
+        "@type": "Object",
+        "fields": [
+          {
+            "name": "horizontal",
+            "schema": "integer"
+          },
+          {
+            "name": "vertical",
+            "schema": "integer"
+          }
+        ]
+      }
+    },
+    {
+      "@type": "Property",
+      "name": "currentCapacity",
+      "schema": "integer"
+    }
+  ]
+}

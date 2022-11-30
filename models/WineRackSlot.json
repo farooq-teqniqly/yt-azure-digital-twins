@@ -1,0 +1,19 @@
+{
+  "@context": "dtmi:dtdl:context;2",
+  "@id": "dtmi:com:thewineshoppe:WineRackSlot;1",
+  "@type": "Interface",
+  "displayName": "Wine Rack Slot",
+  "contents": [
+    {
+      "@type": "Property",
+      "name": "occupied",
+      "schema": "boolean"
+    },
+    {
+      "@type": "Relationship",
+      "name": "partOf",
+      "displayName": "Slot is part of a Wine Rack",
+      "target": "dtmi:com:thewineshoppe:WineRack;1"
+    }
+  ]
+}

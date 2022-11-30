@@ -1,0 +1,19 @@
+{
+  "@context": "dtmi:dtdl:context;2",
+  "@id": "dtmi:com:thewineshoppe:WineBottle;1",
+  "@type": "Interface",
+  "displayName": "Wine Bottle",
+  "contents": [
+    {
+      "@type": "Property",
+      "name": "upcCode",
+      "schema": "string"
+    },
+    {
+      "@type": "Relationship",
+      "name": "storedIn",
+      "displayName": "Bottle stored in Wine Rack Slot",
+      "target": "dtmi:com:thewineshoppe:WineRackSlot;1"
+    }
+  ]
+}
