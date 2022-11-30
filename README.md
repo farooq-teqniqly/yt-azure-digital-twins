@@ -7,8 +7,9 @@
 3. Save the file.
 4. Open a Powershell session and go to the repository root.
 5. Run `deploy\deploy.ps1` which starts the deployment.
-6. Verify the resource group was created.
-7. Verify an Azure Digital Twins service instance is in the resource group.
+6. When the deployment completes, copy the `outputs` JSON object as you will need these values later.
+7. Verify the resource group was created.
+8. Verify an Azure Digital Twins service instance is in the resource group.
 
 ## Setup Access to Azure Digital Twins Explorer
 
@@ -52,6 +53,22 @@ Before proceeding, disable your browser's popup blocker or better yet allow popu
 6. If the login was successful, you should see an empty window like the one shown [here](https://learn.microsoft.com/en-us/azure/digital-twins/concepts-azure-digital-twins-explorer).
 
 If you click **Run Query** no results will be returned because you haven't created any digital twin instances. Click **Models** and observe no models are present because you haven't uploaded any models.
+
+## Upload Digital Twin Models
+
+1. Open `deploy\uploadModels.ps1` and specify the Azure Digital Twin Service's endpoint url for `$dtEndpointUrl`. The URL can be found in the deployment output you copied earlier.
+2. Save the file.
+3. Open a Powershell session and go to the repository root.
+4. Type `az login` and login using the **organizational account** you created earlier. The organizational account is a member of the Azure Digital Twins Data Owner role and will have permissions to upload models. Don't use your personal Azure account as it doesn't have sufficient permissions.
+5. Run `deploy\uploadModels.ps1`.
+6. Open the Azure Digital Twins Explorer.
+7. Click the **Models** tab on the left.
+8. Verify that the three models - **Wine Bottle**, **Wine Rack**, and **Wine Rack Slot** are present in the list.
+9. Click the **Model Graph** tab on the right.
+10. Verify the following relationships are present:
+
+- Wine Rack Slot **partOf** Wine Rack
+- Wine Bottle **storedIn** Wine Rack Slot
 
 ## Cleanup
 
