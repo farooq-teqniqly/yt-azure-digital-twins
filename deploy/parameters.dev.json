@@ -3,7 +3,7 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "solutionName": {
-      "value": "fm"
+      "value": "[A unique two letter prefix for your Azure resources]"
     },
     "environmentName": {
       "value": "dev"
