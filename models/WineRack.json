@@ -6,6 +6,11 @@
   "contents": [
     {
       "@type": "Property",
+      "name": "serialNo",
+      "schema": "string"
+    },
+    {
+      "@type": "Property",
       "name": "slotDimensions",
       "schema": {
         "@type": "Object",

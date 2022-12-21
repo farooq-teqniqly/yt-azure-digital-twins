@@ -1,0 +1,32 @@
+{
+  "@context": "dtmi:dtdl:context;2",
+  "@id": "dtmi:com:thewineshoppe:Scanner;1",
+  "@type": "Interface",
+  "displayName": "Scanner",
+  "contents": [
+    {
+      "@type": "Property",
+      "name": "serialNo",
+      "schema": "string"
+    },
+    {
+      "@type": "Telemetry",
+      "name": "bottleScanned",
+      "schema": {
+        "@type": "Object",
+        "fields": [
+          {
+            "name": "upcCode",
+            "schema": "string"
+          }
+        ]
+      }
+    },
+    {
+      "@type": "Relationship",
+      "name": "attachedTo",
+      "displayName": "Scanner attached to Wine Rack",
+      "target": "dtmi:com:thewineshoppe:WineRack;1"
+    }
+  ]
+}
