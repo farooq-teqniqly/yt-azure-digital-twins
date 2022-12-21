@@ -12,4 +12,5 @@
 10. [ ] Script/service that simulates a user scanning a ticket and entering the stadium.
 11. [ ] React App - display stadium DT in a card.
 12. [ ] React App - when stadium card is clicked, display list of ticket holders that are in the stadium.
-13. [ ] Create Scanner model.
+13. [x] Create Scanner model.
+14. [x] Script to delete DT models.
