@@ -25,11 +25,6 @@
           }
         ]
       }
-    },
-    {
-      "@type": "Property",
-      "name": "currentCapacity",
-      "schema": "integer"
     }
   ]
 }

@@ -1,4 +1,4 @@
-$dtEndpointUrl = "[Azure Digital Twin Service Endpoint URL]"
+$dtEndpointUrl = "fmdevwestus2adt.api.wus2.digitaltwins.azure.net"
 
 $modelsDir = Join-Path -Path $pwd -ChildPath "models"
 

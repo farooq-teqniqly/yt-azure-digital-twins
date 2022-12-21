@@ -10,6 +10,32 @@
       "schema": "boolean"
     },
     {
+      "@type": "Telemetry",
+      "name": "bottleAdded",
+      "schema": {
+        "@type": "Object",
+        "fields": [
+          {
+            "name": "upcCode",
+            "schema": "string"
+          }
+        ]
+      }
+    },
+    {
+      "@type": "Telemetry",
+      "name": "bottleRemoved",
+      "schema": {
+        "@type": "Object",
+        "fields": [
+          {
+            "name": "upcCode",
+            "schema": "string"
+          }
+        ]
+      }
+    },
+    {
       "@type": "Relationship",
       "name": "partOf",
       "displayName": "Slot is part of a Wine Rack",

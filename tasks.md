@@ -14,3 +14,7 @@
 12. [ ] React App - when stadium card is clicked, display list of ticket holders that are in the stadium.
 13. [x] Create Scanner model.
 14. [x] Script to delete DT models.
+15. [] Wine rack emulator - self onboarding
+16. [] Wine rack emulator - add bottle
+17. [] Wine rack emulator - remove bottle
+18. [] Wine rack emulator - scan bottle
