@@ -20,7 +20,16 @@ resource rg 'Microsoft.Resources/resourceGroups@2021-04-01' = {
 module digitalTwinsDeploy 'DigitalTwins.bicep' = {
   name: 'digitalTwinsDeploy'
   scope: rg
-  params : {
+  params: {
+    baseName: baseName
+    location: location
+  }
+}
+
+module iotHubDeploy 'IoTHub.bicep' = {
+  name: 'iotHubDeploy'
+  scope: rg
+  params: {
     baseName: baseName
     location: location
   }
@@ -29,7 +38,10 @@ module digitalTwinsDeploy 'DigitalTwins.bicep' = {
 output deploymentOutputs object = {
   resourceGroupName: rgName
   digitalTwinsDeployment: {
-    instanceId: digitalTwinsDeploy.outputs.deploymentOutputs.adt.id
     endpointUrl: digitalTwinsDeploy.outputs.deploymentOutputs.adt.endpointUrl
+  }
+  iotHubDeployment: {
+    hostName: iotHubDeploy.outputs.deploymentOutputs.iotHub.hostName
+    eventHubEndpointUrl: iotHubDeploy.outputs.deploymentOutputs.iotHub.eventHubEndpointUrl
   }
 }

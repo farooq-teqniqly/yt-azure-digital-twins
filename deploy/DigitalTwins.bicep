@@ -9,13 +9,10 @@ resource digitalTwinsInstance 'Microsoft.DigitalTwins/digitalTwinsInstances@2020
   }
 }
 
-output id string = digitalTwinsInstance.id
-output endpoint string = digitalTwinsInstance.properties.hostName
-
+var endpoint = digitalTwinsInstance.properties.hostName
 
 output deploymentOutputs object = {
   adt: {
-    id: digitalTwinsInstance.id
-    endpointUrl: digitalTwinsInstance.properties.hostName
+    endpointUrl: endpoint
   }
 }

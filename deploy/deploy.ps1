@@ -1,4 +1,4 @@
-$location = "[Your location]"
+$location = "westus2"
 
 az deployment sub create `
 	--location $location `
