@@ -70,6 +70,16 @@ If you click **Run Query** no results will be returned because you haven't creat
 - Wine Rack Slot **partOf** Wine Rack
 - Wine Bottle **storedIn** Wine Rack Slot
 
+## Onboard the Wine Rack Device
+
+The process below simulates the onboarding of a new wine rack. A device is created in the IoT Hub. This device will have its own device connection string to the IoT Hub.
+
+1. Open `deploy\onboardDevice.ps1` and specify the Azure IoT Hub's hostname for `$iotHubName`. The hostname can be found in the deployment output you copied earlier. Specify your device's "serial number" for `$deviceName`.
+2. Save the file.
+3. Open a Powershell session and go to the repository root.
+4. Run `deploy\onboardDevice.ps1`.
+5. Copy the connection string in the output as you will need it later.
+
 ## Cleanup
 
 ### Azure cleanup
