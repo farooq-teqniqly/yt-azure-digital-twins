@@ -1,5 +1,4 @@
 ﻿using System.CommandLine;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using Microsoft.Azure.Devices;
 using Microsoft.Azure.Devices.Client;
@@ -40,7 +39,7 @@ namespace SmartWineRack
 
                 await registryManager.AddDeviceAsync(device);
 
-                await File.WriteAllTextAsync(DeviceNameFile, dn);
+                await WriteFileAsync(DeviceNameFile, dn);
             }, connectionStringArg, deviceNameArg);
 
             onboardRootCommand.AddCommand(onboardIoTHubCommand);
@@ -61,10 +60,10 @@ namespace SmartWineRack
 
             onboardTwinCommand.SetHandler(async (on, sc) =>
             {
-                await File.WriteAllTextAsync(OrgNameFile, on);
-                await File.WriteAllTextAsync(SlotCountFile, sc.ToString());
+                await WriteFileAsync(OrgNameFile, on);
+                await WriteFileAsync(SlotCountFile, sc.ToString());
                 
-                await File.WriteAllTextAsync(SlotsFile, JsonConvert.SerializeObject(new string[sc]));
+                await WriteFileAsync(SlotsFile, JsonConvert.SerializeObject(new string[sc]));
 
                 var deviceName = await File.ReadAllTextAsync(DeviceNameFile);
                 var connectionString = await File.ReadAllTextAsync(IotHubConnectionStringFile);
@@ -101,9 +100,9 @@ namespace SmartWineRack
 
             setCommand.AddArgument(connectionStringArg);
 
-            setCommand.SetHandler((cs) =>
+            setCommand.SetHandler(async (cs) =>
             {
-                File.WriteAllText(IotHubConnectionStringFile, cs);
+                await WriteFileAsync(IotHubConnectionStringFile, cs);
             }, connectionStringArg);
 
             configRootCommand.AddCommand(setCommand);
@@ -129,13 +128,8 @@ namespace SmartWineRack
 
             showCommand.SetHandler(async () =>
             {
-                var slotsFileContent = await File.ReadAllTextAsync(SlotsFile);
-
-                var slots = JsonConvert.DeserializeObject<string[]>(slotsFileContent) 
-                            ?? throw new ArgumentNullException("Unable to read slots file!", null as Exception);
-
-                var slotCount = int.Parse(await File.ReadAllTextAsync(SlotCountFile));
-
+                var slots = await ReadSlotsAsync();
+                var slotCount = await ReadSlotCountAsync();
                 PrintBottles(slotCount, slots);
             });
 
@@ -156,17 +150,12 @@ namespace SmartWineRack
 
             addCommand.SetHandler(async (sn, upc) =>
             {
-                var slotsFileContent = await File.ReadAllTextAsync(SlotsFile);
-
-                var slots = JsonConvert.DeserializeObject<string[]>(slotsFileContent)
-                            ?? throw new ArgumentNullException("Unable to read slots file!", null as Exception);
-
-                var slotCount = int.Parse(await File.ReadAllTextAsync(SlotCountFile));
+                var slots = await ReadSlotsAsync();
+                var slotCount = await ReadSlotCountAsync();
 
                 slots[sn - 1] = upc;
 
-                await File.WriteAllTextAsync(SlotsFile, JsonConvert.SerializeObject(slots));
-                
+                await SaveSlotsAsync(slots);
                 PrintBottles(slotCount, slots);
 
             }, slotNumberArg, upcCodeArg);
@@ -179,26 +168,59 @@ namespace SmartWineRack
 
             removeCommand.SetHandler(async (sn) =>
             {
-                var slotsFileContent = await File.ReadAllTextAsync(SlotsFile);
-
-                var slots = JsonConvert.DeserializeObject<string[]>(slotsFileContent)
-                            ?? throw new ArgumentNullException("Unable to read slots file!", null as Exception);
-
-                var slotCount = int.Parse(await File.ReadAllTextAsync(SlotCountFile));
+                var slots = await ReadSlotsAsync();
+                var slotCount = await ReadSlotCountAsync();
 
                 slots[sn - 1] = $"{slots[sn-1]}(Removed not scanned)";
 
-                await File.WriteAllTextAsync(SlotsFile, JsonConvert.SerializeObject(slots));
-
+                await SaveSlotsAsync(slots);
                 PrintBottles(slotCount, slots);
 
             }, slotNumberArg);
 
             bottleRootCommand.AddCommand(removeCommand);
 
+            var scanCommand = new Command("scan", "Scan a bottle.");
+
+            scanCommand.AddArgument(slotNumberArg);
+
+            scanCommand.SetHandler(async (sn) =>
+            {
+                var slots = await ReadSlotsAsync();
+                var slotCount = await ReadSlotCountAsync();
+                
+                slots[sn - 1] = null!;
+
+                await SaveSlotsAsync(slots);
+                PrintBottles(slotCount, slots);
+
+            }, slotNumberArg);
+
+            bottleRootCommand.AddCommand(scanCommand);
+
             rootCommand.AddCommand(bottleRootCommand);
 
             return rootCommand;
+        }
+
+        private static async Task<int> ReadSlotCountAsync()
+        {
+            var slotCount = int.Parse(await ReadFileAsync(SlotCountFile));
+            return slotCount;
+        }
+
+        private static async Task SaveSlotsAsync(string[] slots)
+        {
+            await WriteFileAsync(SlotsFile, JsonConvert.SerializeObject(slots));
+        }
+
+        private static async Task<string[]> ReadSlotsAsync()
+        {
+            var slotsFileContent = await ReadFileAsync(SlotsFile);
+
+            var slots = JsonConvert.DeserializeObject<string[]>(slotsFileContent)
+                        ?? throw new ArgumentNullException("Unable to read slots file!", null as Exception);
+            return slots;
         }
 
         private static void PrintBottles(int slotCount, string[] slots)
@@ -210,6 +232,16 @@ namespace SmartWineRack
                 var bottleText = string.IsNullOrEmpty(slots[slotNumber]) ? "Unoccupied" : slots[slotNumber];
                 Console.WriteLine($"{slotNumber + 1}\t{bottleText}");
             }
+        }
+
+        private static async Task<string> ReadFileAsync(string path)
+        {
+            return await File.ReadAllTextAsync(path);
+        }
+
+        private static async Task WriteFileAsync(string path, string text)
+        {
+            await File.WriteAllTextAsync(path, text);
         }
     }
 }

@@ -19,6 +19,7 @@
 17. [x] Wine rack emulator - show device connection string
 18. [x] Wine rack emulator - send twin onboard message to IoT Hub.
 19. [x] Wine rack emulator - send twin onboard message to IoT Hub.
-20. [] Wine rack emulator - add bottle
-21. [] Wine rack emulator - remove bottle
-22. [] Wine rack emulator - scan bottle
+20. [] Save slots as array to file
+21. [] Wine rack emulator - add bottle
+22. [] Wine rack emulator - remove bottle
+23. [] Wine rack emulator - scan bottle
