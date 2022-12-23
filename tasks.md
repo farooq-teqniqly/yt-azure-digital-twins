@@ -14,7 +14,11 @@
 12. [ ] React App - when stadium card is clicked, display list of ticket holders that are in the stadium.
 13. [x] Create Scanner model.
 14. [x] Script to delete DT models.
-15. [] Wine rack emulator - self onboarding
-16. [] Wine rack emulator - add bottle
-17. [] Wine rack emulator - remove bottle
-18. [] Wine rack emulator - scan bottle
+15. [x] Wine rack emulator - add device to IoT hub
+16. [x] Wine rack emulator - add device connection string to config file
+17. [x] Wine rack emulator - show device connection string
+18. [x] Wine rack emulator - send twin onboard message to IoT Hub.
+19. [x] Wine rack emulator - send twin onboard message to IoT Hub.
+20. [] Wine rack emulator - add bottle
+21. [] Wine rack emulator - remove bottle
+22. [] Wine rack emulator - scan bottle
