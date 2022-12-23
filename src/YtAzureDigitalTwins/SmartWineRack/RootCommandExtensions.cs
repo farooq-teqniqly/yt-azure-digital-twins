@@ -1,4 +1,5 @@
 ﻿using System.CommandLine;
+using System.Dynamic;
 using System.Text;
 using Microsoft.Azure.Devices;
 using Microsoft.Azure.Devices.Client;
@@ -64,20 +65,12 @@ namespace SmartWineRack
                 await WriteFileAsync(SlotCountFile, sc.ToString());
                 
                 await WriteFileAsync(SlotsFile, JsonConvert.SerializeObject(new string[sc]));
-
-                var deviceName = await File.ReadAllTextAsync(DeviceNameFile);
-                var connectionString = await File.ReadAllTextAsync(IotHubConnectionStringFile);
-
-                var payload = JsonConvert.SerializeObject(new { deviceName, org = on, slotcount = sc, mtype = MessageTypes.OnboardTwin });
                 
-                var message = new Message(Encoding.UTF8.GetBytes(payload))
-                {
-                    ContentEncoding = "utf-8",
-                    ContentType = "application/json"
-                };
+                dynamic expando = new ExpandoObject();
+                expando.org = on;
+                expando.slotcount = sc;
                 
-                var deviceClient = DeviceClient.CreateFromConnectionString(connectionString, TransportType.Mqtt);
-                await deviceClient.SendEventAsync(message);
+                await SendMessageAsync(expando, MessageTypes.OnboardTwin);
 
             }, orgNameArg, slotCountArg);
 
@@ -156,6 +149,7 @@ namespace SmartWineRack
                 slots[sn - 1] = upc;
 
                 await SaveSlotsAsync(slots);
+                await SendBottleMessage(sn, upc, MessageTypes.BottleAdded);
                 PrintBottles(slotCount, slots);
 
             }, slotNumberArg, upcCodeArg);
@@ -170,10 +164,12 @@ namespace SmartWineRack
             {
                 var slots = await ReadSlotsAsync();
                 var slotCount = await ReadSlotCountAsync();
+                var upc = slots[sn - 1];
 
                 slots[sn - 1] = $"{slots[sn-1]}(Removed not scanned)";
 
                 await SaveSlotsAsync(slots);
+                await SendBottleMessage(sn, upc, MessageTypes.BottleRemoved);
                 PrintBottles(slotCount, slots);
 
             }, slotNumberArg);
@@ -188,10 +184,12 @@ namespace SmartWineRack
             {
                 var slots = await ReadSlotsAsync();
                 var slotCount = await ReadSlotCountAsync();
-                
+                var upc = slots[sn - 1];
+
                 slots[sn - 1] = null!;
 
                 await SaveSlotsAsync(slots);
+                await SendBottleMessage(sn, upc, MessageTypes.BottleScanned);
                 PrintBottles(slotCount, slots);
 
             }, slotNumberArg);
@@ -242,6 +240,33 @@ namespace SmartWineRack
         private static async Task WriteFileAsync(string path, string text)
         {
             await File.WriteAllTextAsync(path, text);
+        }
+
+        private static async Task SendMessageAsync(dynamic body, MessageTypes messageType)
+        {
+            body.mtype = messageType;
+            body.deviceName = await ReadFileAsync(DeviceNameFile);
+
+            var payload = JsonConvert.SerializeObject(body);
+
+            var message = new Message(Encoding.UTF8.GetBytes(payload))
+            {
+                ContentEncoding = "utf-8",
+                ContentType = "application/json"
+            };
+
+            var connectionString = await File.ReadAllTextAsync(IotHubConnectionStringFile);
+            var deviceClient = DeviceClient.CreateFromConnectionString(connectionString, TransportType.Mqtt);
+            await deviceClient.SendEventAsync(message);
+        }
+
+        private static async Task SendBottleMessage(int slotNumber, string upcCode, MessageTypes messageType)
+        {
+            dynamic expando = new ExpandoObject();
+            expando.slot = slotNumber;
+            expando.upc = upcCode;
+
+            await SendMessageAsync(expando, messageType);
         }
     }
 }
