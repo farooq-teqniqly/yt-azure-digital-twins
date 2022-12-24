@@ -1,0 +1,13 @@
+{
+  "profiles": {
+    "WineRackMessageProcessor": {
+      "commandName": "Project"
+    },
+    "Docker": {
+      "commandName": "Docker",
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
+      "httpPort": 34962,
+      "useSSL": false
+    }
+  }
+}
