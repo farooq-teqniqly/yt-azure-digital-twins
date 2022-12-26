@@ -22,6 +22,7 @@ namespace WineRackMessageProcessor
             var credential = new DefaultAzureCredential();
             var client = new DigitalTwinsClient(new Uri(config["AdtEndpoint"]), credential);
             builder.Services.AddSingleton(client);
+            builder.Services.AddSingleton<ITwinIdService>(_ => new TwinIdService());
         }
     }
 }

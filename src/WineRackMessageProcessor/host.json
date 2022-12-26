@@ -6,6 +6,9 @@
                 "isEnabled": true,
                 "excludedTypes": "Request"
             }
+        },
+        "logLevel": {
+            "WineRackMessageProcessor.Function1": "Information"
         }
     }
 }
