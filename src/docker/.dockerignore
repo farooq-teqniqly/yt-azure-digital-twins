@@ -8,7 +8,6 @@
 **/.toolstarget
 **/.vs
 **/.vscode
-**/.idea
 **/*.*proj.user
 **/*.dbmdl
 **/*.jfm
@@ -22,10 +21,5 @@
 **/obj
 **/secrets.dev.yaml
 **/values.dev.yaml
-**/LICENSE
-**/README.md
-**/readme.md
-**/appsettings.Development.json
-
-# Custom files
-.env
+LICENSE
+README.md

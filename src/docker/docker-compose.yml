@@ -15,6 +15,10 @@ services:
       - IoTHubConnectionString=Endpoint=sb://iothub-ns-fmdevwestu-23622869-21c8f3a31b.servicebus.windows.net/;SharedAccessKeyName=iothubowner;SharedAccessKey=pUSx3ddQy7bvG9vqjrgSfCrO/X/Tk4/MybPpWqVDj/s=;EntityPath=fmdevwestus2iothub
     build:
       context: ../
-      dockerfile: ./docker/Dockerfile
+      dockerfile: ./docker/messageprocessor.Dockerfile
     depends_on:
       - azurite
+  winerack:
+    build:
+      context: ../
+      dockerfile: ./docker/swr.Dockerfile

@@ -244,7 +244,7 @@ namespace SmartWineRack
 
         private static async Task SendMessageAsync(dynamic body, MessageTypes messageType)
         {
-            body.mtype = messageType;
+            body.mtype = messageType.ToString().ToLower();
             body.deviceName = await ReadFileAsync(DeviceNameFile);
 
             var payload = JsonConvert.SerializeObject(body);

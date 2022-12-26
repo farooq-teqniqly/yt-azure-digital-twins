@@ -3,6 +3,9 @@
     "SmartWineRack": {
       "commandName": "Project",
       "commandLineArgs": "onboard \"HostName=fmdevwestus2iothub.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=C0WXTpwJ1hWOG8ClKvuTX4mHxZhrKaMQpVy4qbh4xP8=\" testdevice001"
+    },
+    "Docker": {
+      "commandName": "Docker"
     }
   }
 }

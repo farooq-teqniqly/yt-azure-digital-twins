@@ -1,0 +1,7 @@
+{
+  "profiles": {
+    "WineRackMessageProcessor": {
+      "commandName": "Project"
+    }
+  }
+}

@@ -70,15 +70,48 @@ If you click **Run Query** no results will be returned because you haven't creat
 - Wine Rack Slot **partOf** Wine Rack
 - Wine Bottle **storedIn** Wine Rack Slot
 
+## Build the Docker Containers
+
+The solution contains two projects - a console app representing the wine rack device, and an Azure Function app that processes messages from the wine rack. These projects can be built as Docker containers, simplifying their execution.
+
+1. Open a Powershell session and go to the `src\docker` folder.
+2. Run `docker-compose build`
+3. Run `docker image ls` and verify the following images are listed:
+   - docker-winerack
+   - docker-messageprocessor
+
 ## Onboard the Wine Rack Device
 
 The process below simulates the onboarding of a new wine rack. A device is created in the IoT Hub. This device will have its own device connection string to the IoT Hub.
 
-1. Open `deploy\onboardDevice.ps1` and specify the Azure IoT Hub's hostname for `$iotHubName`. The hostname can be found in the deployment output you copied earlier. Specify your device's "serial number" for `$deviceName`.
-2. Save the file.
-3. Open a Powershell session and go to the repository root.
-4. Run `deploy\onboardDevice.ps1`.
-5. Copy the connection string in the output as you will need it later.
+1. Open a Powershell session and go to the `src\docker` folder.
+2. Run `docker run -it --entrypoint /bin/bash docker-winerack`
+3. At the bash prompt, run `dotnet ./swr.dll`. You will get an error because not command line options were specified but at least you know the app is working.
+
+### Create a IoT Hub Virtual Device for the Wine Rack
+
+1. Open a new Powershell session and go to the repository root.
+2. Run `az iot hub connection-string show --hub-name [Your IoT Hub host name] --output tsv`. The IoT Hub host name can be found in the deployment output you copied earlier.
+3. Copy the connection string.
+4. Go back to the bash prompt and run `dotnet ./swr.dll onboard iothub "[Your IoT Hub connection string]" testwinerack`. Make sure the connection string is enclosed in double-quotes.
+5. Now get the wine rack's dedicated IoT Hub connection string by running `az iot hub device-identity connection-string show --hub-name [Your IoT Hub host name] --device-id testwinerack --output tsv` in the Azure CLI Powershell session.
+6. Copy the connection string in the output as you will need it later.
+
+### Configure the Wine Rack's With the Dedicated IoT Hub Connection String
+
+In the bash prompt, run `dotnet ./swr.dll config set "[Your wine rack's connection string]"`. This is the connection string you copied in the previous step. Make sure the connection string is enclosed in double-quotes.
+
+The wine rack will send IoT Hub messages using this connection string.
+
+### Onboard the Wine Rack to the Azure Digital Twins Service
+
+In this step, you will have the Wine Rack create a message that instructs the Azure Digital Twin to create the Wine Rack's twin.
+
+In the bash prompt, run `dotnet ./swr.dll onboard twin "My Org" 32`. The first argument is the name of the organization that owns the wine rack. The second parameter is the number of wine rack slots.
+
+## Process the Onboarding Message
+
+At this point the wine rack has sent a message to the IoT Hub containing the new wine rack's details. To process this message and create the digital twin, run the Function App.
 
 ## Cleanup
 
