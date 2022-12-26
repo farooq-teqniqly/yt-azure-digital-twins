@@ -70,7 +70,6 @@ namespace SmartWineRack
                 dynamic expando = new ExpandoObject();
                 expando.org = on;
                 expando.slotcount = sc;
-                expando.serialNumber = new StringCreator("abcdefg1234567").Get(6);
                 
                 await SendMessageAsync(expando, MessageTypes.OnboardTwin);
 
@@ -248,6 +247,7 @@ namespace SmartWineRack
         {
             body.mtype = messageType.ToString().ToLower();
             body.deviceName = await ReadFileAsync(DeviceNameFile);
+            body.serialNumber = new StringCreator("abcdefg1234567").Get(6);
 
             var payload = JsonConvert.SerializeObject(body);
 
