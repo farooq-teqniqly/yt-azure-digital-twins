@@ -68,6 +68,8 @@ If you click **Run Query** no results will be returned because you haven't creat
 10. Verify the following relationships are present:
 
 - Wine Rack Slot **partOf** Wine Rack
+- Wine Rack **ownedBy** Organization
+- Scanner **attachedTo** Wine Rack
 - Wine Bottle **storedIn** Wine Rack Slot
 
 ## Build the Docker Containers

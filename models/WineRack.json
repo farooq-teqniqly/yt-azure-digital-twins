@@ -25,6 +25,12 @@
           }
         ]
       }
+    },
+    {
+      "@type": "Relationship",
+      "name": "ownedBy",
+      "displayName": "Wine rack owned by organization",
+      "target": "dtmi:com:thewineshoppe:Organization;1"
     }
   ]
 }
