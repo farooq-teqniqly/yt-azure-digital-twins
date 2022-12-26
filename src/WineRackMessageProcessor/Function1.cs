@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Azure.DigitalTwins.Core;
 using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
@@ -11,6 +12,13 @@ namespace WineRackMessageProcessor
 {
     public class Function1
     {
+        private readonly DigitalTwinsClient dtClient;
+
+        public Function1(DigitalTwinsClient dtClient)
+        {
+            this.dtClient = dtClient;
+        }
+
         [FunctionName("Function1")]
         public async Task Run([EventHubTrigger(eventHubName: "%EventHubName%", Connection = "IoTHubConnectionString", ConsumerGroup = "$Default")] EventData[] events, ILogger log)
         {
