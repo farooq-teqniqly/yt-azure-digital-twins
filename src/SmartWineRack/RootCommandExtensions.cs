@@ -4,6 +4,7 @@ using System.Text;
 using Microsoft.Azure.Devices;
 using Microsoft.Azure.Devices.Client;
 using Newtonsoft.Json;
+using RandomStringCreator;
 using Message = Microsoft.Azure.Devices.Client.Message;
 using TransportType = Microsoft.Azure.Devices.Client.TransportType;
 
@@ -69,6 +70,7 @@ namespace SmartWineRack
                 dynamic expando = new ExpandoObject();
                 expando.org = on;
                 expando.slotcount = sc;
+                expando.serialNumber = new StringCreator("abcdefg1234567").Get(6);
                 
                 await SendMessageAsync(expando, MessageTypes.OnboardTwin);
 
