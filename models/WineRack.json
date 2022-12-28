@@ -11,20 +11,13 @@
     },
     {
       "@type": "Property",
-      "name": "slotDimensions",
-      "schema": {
-        "@type": "Object",
-        "fields": [
-          {
-            "name": "horizontal",
-            "schema": "integer"
-          },
-          {
-            "name": "vertical",
-            "schema": "integer"
-          }
-        ]
-      }
+      "name": "name",
+      "schema": "string"
+    },
+    {
+      "@type": "Property",
+      "name": "slotCount",
+      "schema": "integer"
     },
     {
       "@type": "Relationship",

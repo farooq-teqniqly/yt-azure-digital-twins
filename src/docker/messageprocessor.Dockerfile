@@ -13,10 +13,10 @@ WORKDIR "/src/WineRackMessageProcessor"
 RUN dotnet build "WineRackMessageProcessor.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "WineRackMessageProcessor.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "WineRackMessageProcessor.csproj" -c Release -o /app/publish /p:UseAppHost=true
 
 FROM base AS final
 WORKDIR /home/site/wwwroot
 COPY --from=publish /app/publish .
-ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
-    AzureFunctionsJobHost__Logging__Console__IsEnabled=true
+# ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
+#     AzureFunctionsJobHost__Logging__Console__IsEnabled=true

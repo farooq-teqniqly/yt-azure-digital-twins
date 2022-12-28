@@ -18,7 +18,6 @@ namespace SmartWineRack
 {
     public static class RootCommandExtensions
     {
-        private static readonly string DeviceNameFile = Path.Join(Directory.GetCurrentDirectory(), "devicename.txt");
         private static readonly string SlotCountFile = Path.Join(Directory.GetCurrentDirectory(), "slotcount.txt");
         private static readonly string SlotsFile = Path.Join(Directory.GetCurrentDirectory(), "slots.json");
 
@@ -296,7 +295,7 @@ namespace SmartWineRack
         private static async Task SendMessageAsync(dynamic body, MessageTypes messageType, WineRackDbContext db)
         {
             body.mtype = messageType.ToString().ToLower();
-            body.deviceName = await ReadFileAsync(DeviceNameFile);
+            body.deviceName = (await db.Configs.SingleAsync(c => c.Name == "DeviceName")).Value;
             body.serialNumber = new StringCreator("abcdefg1234567").Get(6);
 
             var payload = JsonConvert.SerializeObject(body);

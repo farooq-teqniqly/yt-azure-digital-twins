@@ -6,6 +6,16 @@
   "contents": [
     {
       "@type": "Property",
+      "name": "slotNumber",
+      "schema": "integer"
+    },
+    {
+      "@type": "Property",
+      "name": "name",
+      "schema": "string"
+    },
+    {
+      "@type": "Property",
       "name": "occupied",
       "schema": "boolean"
     },

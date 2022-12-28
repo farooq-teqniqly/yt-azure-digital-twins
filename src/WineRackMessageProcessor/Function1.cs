@@ -67,25 +67,34 @@ namespace WineRackMessageProcessor
 
         private async Task ProcessOnboardTwinMessage(string messageBody)
         {
-            var organization = JsonConvert.DeserializeObject<Organization>(messageBody);
+            var onboardTwinMessage = JsonConvert.DeserializeObject<OnboardTwinMessage>(messageBody);
+            
+            var orgTwin = await this.CreateTwin(
+                ModelIds.Organization,
+                new Dictionary<string, object> { { "name", onboardTwinMessage.Name } });
 
-            this.logger.LogInformation($"Creating twin for Organization '{organization.Name}'.");
-
-            var twinId = this.twinIdService.CreateId();
-
-            var twin = new BasicDigitalTwin
-            {
-                Id = twinId,
-                Metadata = { ModelId = ModelIds.Organization },
-                Contents =
+            var wineRackTwin = await this.CreateTwin(
+                ModelIds.WineRack,
+                new Dictionary<string, object>
                 {
-                    { "name", organization.Name }
-                }
-            };
+                    { "serialNo", onboardTwinMessage.SerialNumber },
+                    { "name", onboardTwinMessage.DeviceName },
+                    { "slotCount", onboardTwinMessage.SlotCount },
+                });
 
-            var response = await this.dtClient.CreateOrReplaceDigitalTwinAsync(twinId, twin);
+            for (var i = 0; i < onboardTwinMessage.SlotCount; i++)
+            {
+                var slotNumber = i + 1;
 
-            this.logger.LogInformation($"Created twin for Organization '{organization.Name}'. Twin id: {response.Value.Id}");
+                var slotTwin = await this.CreateTwin(
+                    ModelIds.WineRackSlot,
+                    new Dictionary<string, object>
+                    {
+                        { "slotNumber", slotNumber },
+                        {"name", $"Slot-{slotNumber}"},
+                        { "occupied", false }
+                    });
+            }
         }
 
         private string GetMessageType(string messageBody)
@@ -101,6 +110,23 @@ namespace WineRackMessageProcessor
             }
 
             throw new InvalidOperationException("Unknown message type.");
+        }
+
+        private async Task<BasicDigitalTwin> CreateTwin(string modelId, IDictionary<string, object> contents)
+        {
+            var id = this.twinIdService.CreateId();
+
+            var twin = new BasicDigitalTwin
+            {
+                Id = id,
+                Metadata = { ModelId = modelId },
+                Contents = contents
+            };
+
+            var response = await this.dtClient.CreateOrReplaceDigitalTwinAsync(id, twin);
+            this.logger.LogInformation($"Created twin. Model id: '{modelId}';Twin id: '{response.Value.Id}'");
+
+            return response.Value;
         }
     }
 }

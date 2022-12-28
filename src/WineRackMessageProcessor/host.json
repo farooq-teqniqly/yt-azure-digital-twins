@@ -8,7 +8,7 @@
             }
         },
         "logLevel": {
-            "WineRackMessageProcessor.Function1": "Information"
+            "WineRackMessageProcessor.Function1": "Debug"
         }
     }
 }
