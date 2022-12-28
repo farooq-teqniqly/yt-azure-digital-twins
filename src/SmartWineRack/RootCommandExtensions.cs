@@ -251,6 +251,7 @@ namespace SmartWineRack
             returnCommand.SetHandler(async (sn, deps) =>
             {
                 var db = deps.WineRackDbContext;
+
                 var wineRack = await db.WineRacks
                     .Include(r => r.WineRackSlots)
                     .ThenInclude(s => s.Bottle)
@@ -265,22 +266,23 @@ namespace SmartWineRack
 
             bottleRootCommand.AddCommand(returnCommand);
             
-            var scanCommand = new Command("scan", "Scan a bottle.");
+            var scanCommand = new Command("scan", "Scan a bottle and permanently remove it from the wine rack.");
 
             scanCommand.AddArgument(slotNumberArg);
 
             scanCommand.SetHandler(async (sn, deps) =>
             {
-                //var db = deps.WineRackDbContext;
-                //var slots = await ReadSlotsAsync();
-                //var slotCount = await ReadSlotCountAsync();
-                //var upc = slots[sn - 1];
+                var db = deps.WineRackDbContext;
 
-                //slots[sn - 1] = null!;
+                var wineRack = await db.WineRacks
+                    .Include(r => r.WineRackSlots)
+                    .ThenInclude(s => s.Bottle)
+                    .SingleAsync();
 
-                //await SaveSlotsAsync(slots);
-                //await SendBottleMessage(sn, upc, MessageTypes.BottleScanned, db);
-                //PrintBottles(slotCount, slots);
+                wineRack.WineRackSlots.Single(s => s.SlotNumber == sn).Bottle = null;
+                await db.SaveChangesAsync();
+
+                await PrintBottles(db);
 
             }, slotNumberArg, new DependenicesBinder());
 
