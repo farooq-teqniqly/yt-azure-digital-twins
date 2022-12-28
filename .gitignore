@@ -109,3 +109,4 @@ obj/
 .vscode/
 /notes.txt
 /src/YtAzureDigitalTwins/.dockerignore
+/src/SmartWineRack/local.settings.json
