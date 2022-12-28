@@ -102,7 +102,7 @@ The process below simulates the onboarding of a new wine rack. A device is creat
 
 ### Configure the Wine Rack's With the Dedicated IoT Hub Connection String
 
-In the bash prompt, run `dotnet ./swr.dll config set "[Your wine rack's connection string]"`. This is the connection string you copied in the previous step. Make sure the connection string is enclosed in double-quotes.
+In the bash prompt, run `dotnet ./swr.dll config add IotHubConnectionString "[Your wine rack's connection string]"`. This is the connection string you copied in the previous step. Make sure the connection string is enclosed in double-quotes.
 
 The wine rack will send IoT Hub messages using this connection string.
 
@@ -110,7 +110,7 @@ The wine rack will send IoT Hub messages using this connection string.
 
 In this step, you will have the Wine Rack create a message that instructs the Azure Digital Twin to create the Wine Rack's twin.
 
-In the bash prompt, run `dotnet ./swr.dll onboard twin "My Org" 32`. The first argument is the name of the organization that owns the wine rack. The second parameter is the number of wine rack slots.
+In the bash prompt, run `dotnet ./swr.dll onboard twin "My Org" 4`. The first argument is the name of the organization that owns the wine rack. The second parameter is the number of wine rack slots.
 
 ## Process the Onboarding Message
 

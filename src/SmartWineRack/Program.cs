@@ -12,6 +12,7 @@ namespace SmartWineRack
             rootCommand.SetupOnboardIoTHubCommand();
             rootCommand.SetupConfigCommand();
             rootCommand.SetupBottleCommand();
+            rootCommand.SetupDecommissionCommand();
  
             return await rootCommand.InvokeAsync(args);
         }

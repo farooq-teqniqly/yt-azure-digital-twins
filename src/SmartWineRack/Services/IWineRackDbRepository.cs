@@ -1,15 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using RandomStringCreator;
 using SmartWineRack.Db;
-using static System.Reflection.Metadata.BlobBuilder;
 
-namespace SmartWineRack.Repositories
+namespace SmartWineRack.Services
 {
+    public interface IIdFactory
+    {
+        public string CreateId();
+    }
+
+    public class IdFactory: IIdFactory
+    {
+        private readonly StringCreator stringCreator = new();
+        
+        public string CreateId()
+        {
+            return stringCreator.Get(10);
+        }
+    }
+
     public interface IWineRackDbRepository
     {
         public Task AddConfig(string name, string value);
@@ -28,21 +37,23 @@ namespace SmartWineRack.Repositories
         public Task RemoveBottle(int slotNumber);
         public Task ReturnBottle(int slotNumber);
         public Task ScanBottle(int slotNumber);
+
+        public Task DecomissionWineRack();
     }
 
     public class WineRackDbRepository : IWineRackDbRepository
     {
         private readonly WineRackDbContext db;
-        private readonly StringCreator idCreator;
+        private readonly IIdFactory idFactory;
 
-        public WineRackDbRepository(WineRackDbContext db, StringCreator idCreator)
+        public WineRackDbRepository(WineRackDbContext db, IIdFactory idFactory)
         {
             this.db = db;
-            this.idCreator = idCreator;
+            this.idFactory = idFactory;
         }
         public async Task AddConfig(string name, string value)
         {
-            await db.Configs.AddAsync(new WineRackConfig { Id = idCreator.Get(10), Name = name, Value = value });
+            await db.Configs.AddAsync(new WineRackConfig { Id = idFactory.CreateId(), Name = name, Value = value });
             await db.SaveChangesAsync();
         }
 
@@ -52,7 +63,7 @@ namespace SmartWineRack.Repositories
                 items.Select(
                     item => new WineRackConfig
                     {
-                        Id = idCreator.Get(10), Name = item.Key, Value = item.Value
+                        Id = idFactory.CreateId(), Name = item.Key, Value = item.Value
                     }));
 
             await db.SaveChangesAsync();
@@ -84,15 +95,15 @@ namespace SmartWineRack.Repositories
                 slots.Add(
                     new WineRackSlot
                         {
-                            Id = idCreator.Get(10), 
+                            Id = idFactory.CreateId(), 
                             SlotNumber = i + 1
                         });
             }
 
             var wineRack = new WineRack
             {
-                Id = idCreator.Get(10),
-                Scanner = new Scanner { Id = idCreator.Get(10) },
+                Id = idFactory.CreateId(),
+                Scanner = new Scanner { Id = idFactory.CreateId() },
                 WineRackSlots = slots
             };
 
@@ -134,6 +145,15 @@ namespace SmartWineRack.Repositories
         {
             (await GetSlots()).Single(s => s.SlotNumber == slotNumber).Bottle = null;
             await db.SaveChangesAsync();
+        }
+
+        public async Task DecomissionWineRack()
+        {
+            await db.Database.ExecuteSqlAsync($"DELETE FROM Bottle;");
+            await db.Database.ExecuteSqlAsync($"DELETE FROM WineRackSlot;");
+            await db.Database.ExecuteSqlAsync($"DELETE FROM Scanner;");
+            await db.Database.ExecuteSqlAsync($"DELETE FROM WineRack;");
+            await db.Database.ExecuteSqlAsync($"DELETE FROM WineRackConfig;");
         }
     }
 }
