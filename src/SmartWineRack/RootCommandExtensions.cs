@@ -11,6 +11,7 @@ using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
 using RandomStringCreator;
 using SmartWineRack.Db;
+using SmartWineRack.Repositories;
 using Message = Microsoft.Azure.Devices.Client.Message;
 using TransportType = Microsoft.Azure.Devices.Client.TransportType;
 
@@ -18,9 +19,6 @@ namespace SmartWineRack
 {
     public static class RootCommandExtensions
     {
-        private static readonly string SlotCountFile = Path.Join(Directory.GetCurrentDirectory(), "slotcount.txt");
-        private static readonly string SlotsFile = Path.Join(Directory.GetCurrentDirectory(), "slots.json");
-
         public static RootCommand SetupOnboardIoTHubCommand(this RootCommand rootCommand)
         {
             var onboardRootCommand = new Command("onboard", "Onboard this device.");
@@ -39,16 +37,12 @@ namespace SmartWineRack
 
             onboardIoTHubCommand.SetHandler(async (cs, dn, deps) =>
             {
-                var db = deps.WineRackDbContext;
-                var idCreator = deps.IdCreator;
-
-                await db.Configs.AddAsync(new WineRackConfig {Id = idCreator.Get(10), Name = "DeviceName", Value = dn });
-                await db.SaveChangesAsync();
+                await deps.Repository.AddConfig("DeviceName", dn);
 
                 var registryManager = RegistryManager.CreateFromConnectionString(cs);
                 var device = new Device(dn);
 
-                await registryManager.AddDeviceAsync(device);
+                //await registryManager.AddDeviceAsync(device);
 
             }, connectionStringArg, deviceNameArg, new DependenicesBinder());
 
@@ -73,35 +67,22 @@ namespace SmartWineRack
                 var db = deps.WineRackDbContext;
                 var idCreator = deps.IdCreator;
 
-                await db.Configs.AddAsync(new WineRackConfig { Id = idCreator.Get(10), Name = "Organization", Value = on });
-                await db.Configs.AddAsync(new WineRackConfig { Id = idCreator.Get(10), Name = "SlotCount", Value = sc.ToString() });
-                await db.Configs.AddAsync(new WineRackConfig { Id = idCreator.Get(10), Name = "WineRackSerialNumber", Value = idCreator.Get(10) });
-                await db.Configs.AddAsync(new WineRackConfig { Id = idCreator.Get(10), Name = "ScannerSerialNumber", Value = idCreator.Get(10) });
-
-                var slots = new List<WineRackSlot>(sc);
-
-                for (var i = 0; i < sc; i++)
+                var configs = new List<KeyValuePair<string, string>>
                 {
-                    slots.Add(new WineRackSlot {Id = idCreator.Get(10), SlotNumber = i + 1});
-                }
-
-
-                var wineRack = new WineRack
-                {
-                    Id = idCreator.Get(10),
-                    Scanner = new Scanner { Id = idCreator.Get(10) },
-                    WineRackSlots = slots
+                    new("Organization", on),
+                    new("SlotCount", sc.ToString()),
+                    new("WineRackSerialNumber", idCreator.Get(10)),
+                    new("ScannerSerialNumber", idCreator.Get(10))
                 };
 
-                await db.WineRacks.AddAsync(wineRack);
+                await deps.Repository.AddConfigs(configs);
+                await deps.Repository.AddWineRack(sc);
                 
-                await db.SaveChangesAsync();
-
                 dynamic expando = new ExpandoObject();
                 expando.org = on;
                 expando.slotcount = sc;
                 
-                await SendMessageAsync(expando, MessageTypes.OnboardTwin, db);
+                await SendMessageAsync(expando, MessageTypes.OnboardTwin, db, deps.Repository);
 
             }, orgNameArg, slotCountArg, new DependenicesBinder());
 
@@ -112,9 +93,9 @@ namespace SmartWineRack
             return rootCommand;
         }
 
-        public static RootCommand SetupConfigIoTHubCommand(this RootCommand rootCommand)
+        public static RootCommand SetupConfigCommand(this RootCommand rootCommand)
         {
-            var configRootCommand = new Command("config", "Manage the wine rack's comnfiguration.");
+            var configRootCommand = new Command("config", "Manage the wine rack's configuration.");
             var addCommand = new Command("add", "Add a wine rack configuration item.");
 
 
@@ -131,22 +112,17 @@ namespace SmartWineRack
 
             addCommand.SetHandler(async (sn, sv, deps) =>
             {
-                var db = deps.WineRackDbContext;
-                var idCreator = deps.IdCreator;
-                
-                await db.Configs.AddAsync(new WineRackConfig { Id = idCreator.Get(10), Name = sn, Value = sv });
-                await db.SaveChangesAsync();
-                
+                await deps.Repository.AddConfig(sn, sv);
+
             }, addSettingArg, addSettingValueArg, new DependenicesBinder());
 
             configRootCommand.AddCommand(addCommand);
 
-            var showCommand = new Command("show", "Show the wine rack's configuration.");
+            var listCommand = new Command("list", "List the wine rack's configuration.");
 
-            showCommand.SetHandler(async (deps) =>
+            listCommand.SetHandler(async (deps) =>
             {
-                var db = deps.WineRackDbContext;
-                var configs = await db.Configs.ToListAsync();
+                var configs = await deps.Repository.ListConfigs();
 
                 foreach (var config in configs)
                 {
@@ -155,7 +131,7 @@ namespace SmartWineRack
 
             }, new DependenicesBinder());
 
-            configRootCommand.AddCommand(showCommand);
+            configRootCommand.AddCommand(listCommand);
 
             var deleteCommand = new Command("delete", "Delete a configuration setting.");
 
@@ -167,11 +143,7 @@ namespace SmartWineRack
 
             deleteCommand.SetHandler(async (sn, deps) =>
             {
-                var db = deps.WineRackDbContext;
-                var config = await db.Configs.SingleAsync(c => c.Name == sn);
-                db.Configs.Remove(config);
-                await db.SaveChangesAsync();
-
+                await deps.Repository.RemoveConfig(sn);
             }, deleteSettingNameArg, new DependenicesBinder());
 
             configRootCommand.AddCommand(deleteCommand);
@@ -188,7 +160,7 @@ namespace SmartWineRack
 
             showCommand.SetHandler(async (deps) =>
             {
-                await PrintBottles(deps.WineRackDbContext);
+                await PrintBottles(deps.WineRackDbContext, deps.Repository);
             }, new DependenicesBinder());
 
             bottleRootCommand.AddCommand(showCommand);
@@ -208,15 +180,10 @@ namespace SmartWineRack
 
             addCommand.SetHandler(async (sn, upc, deps) =>
             {
-                var db = deps.WineRackDbContext;
-                var wineRack = await db.WineRacks.Include(r => r.WineRackSlots).SingleAsync();
-                var slot = wineRack.WineRackSlots.Single(s => s.SlotNumber == sn);
-
-                slot.Bottle = new Bottle { UpcCode = upc, BottleState = BottleState.InPlace};
-                await db.SaveChangesAsync();
+                await deps.Repository.AddBottle(upc, sn);
 
                 //await SendBottleMessage(sn, upc, MessageTypes.BottleAdded, db);
-                await PrintBottles(db);
+                await PrintBottles(deps.WineRackDbContext, deps.Repository);
 
             }, slotNumberArg, upcCodeArg, new DependenicesBinder());
 
@@ -228,16 +195,8 @@ namespace SmartWineRack
 
             removeCommand.SetHandler(async (sn, deps) =>
             {
-                var db = deps.WineRackDbContext;
-                var wineRack = await db.WineRacks
-                    .Include(r => r.WineRackSlots)
-                    .ThenInclude(s => s.Bottle)
-                    .SingleAsync();
-
-                wineRack.WineRackSlots.Single(s => s.SlotNumber == sn).Bottle.BottleState = BottleState.RemoveNotScanned;
-                await db.SaveChangesAsync();
-                
-                await PrintBottles(db);
+                await deps.Repository.RemoveBottle(sn);
+                await PrintBottles(deps.WineRackDbContext, deps.Repository);
 
             }, slotNumberArg, new DependenicesBinder());
 
@@ -250,17 +209,8 @@ namespace SmartWineRack
 
             returnCommand.SetHandler(async (sn, deps) =>
             {
-                var db = deps.WineRackDbContext;
-
-                var wineRack = await db.WineRacks
-                    .Include(r => r.WineRackSlots)
-                    .ThenInclude(s => s.Bottle)
-                    .SingleAsync();
-
-                wineRack.WineRackSlots.Single(s => s.SlotNumber == sn).Bottle.BottleState = BottleState.InPlace;
-                await db.SaveChangesAsync();
-
-                await PrintBottles(db);
+                await deps.Repository.ReturnBottle(sn);
+                await PrintBottles(deps.WineRackDbContext, deps.Repository);
 
             }, slotNumberArg, new DependenicesBinder());
 
@@ -272,17 +222,8 @@ namespace SmartWineRack
 
             scanCommand.SetHandler(async (sn, deps) =>
             {
-                var db = deps.WineRackDbContext;
-
-                var wineRack = await db.WineRacks
-                    .Include(r => r.WineRackSlots)
-                    .ThenInclude(s => s.Bottle)
-                    .SingleAsync();
-
-                wineRack.WineRackSlots.Single(s => s.SlotNumber == sn).Bottle = null;
-                await db.SaveChangesAsync();
-
-                await PrintBottles(db);
+                await deps.Repository.ScanBottle(sn);
+                await PrintBottles(deps.WineRackDbContext, deps.Repository);
 
             }, slotNumberArg, new DependenicesBinder());
 
@@ -293,36 +234,13 @@ namespace SmartWineRack
             return rootCommand;
         }
 
-        private static async Task<int> ReadSlotCountAsync()
+        private static async Task PrintBottles(WineRackDbContext db, IWineRackDbRepository repository)
         {
-            var slotCount = int.Parse(await ReadFileAsync(SlotCountFile));
-            return slotCount;
-        }
-
-        private static async Task SaveSlotsAsync(string[] slots)
-        {
-            await WriteFileAsync(SlotsFile, JsonConvert.SerializeObject(slots));
-        }
-
-        private static async Task<string[]> ReadSlotsAsync()
-        {
-            var slotsFileContent = await ReadFileAsync(SlotsFile);
-
-            var slots = JsonConvert.DeserializeObject<string[]>(slotsFileContent)
-                        ?? throw new ArgumentNullException("Unable to read slots file!", null as Exception);
-            return slots;
-        }
-
-        private static async Task PrintBottles(WineRackDbContext db)
-        {
-            var wineRack = await (db.WineRacks
-                .Include(r => r.WineRackSlots)
-                .ThenInclude(s => s.Bottle))
-                .SingleAsync();
+            var slots = await repository.GetSlots();
 
             Console.WriteLine("Slot\tBottle");
 
-            foreach (var slot in wineRack.WineRackSlots.OrderBy(s => s.SlotNumber))
+            foreach (var slot in slots)
             {
                 var bottleText = "Unoccupied";
 
@@ -337,22 +255,12 @@ namespace SmartWineRack
             }
         }
 
-        private static async Task<string> ReadFileAsync(string path)
-        {
-            return await File.ReadAllTextAsync(path);
-        }
-
-        private static async Task WriteFileAsync(string path, string text)
-        {
-            await File.WriteAllTextAsync(path, text);
-        }
-
-        private static async Task SendMessageAsync(dynamic body, MessageTypes messageType, WineRackDbContext db)
+        private static async Task SendMessageAsync(dynamic body, MessageTypes messageType, WineRackDbContext db, IWineRackDbRepository repository)
         {
             body.mtype = messageType.ToString().ToLower();
-            body.deviceName = (await db.Configs.SingleAsync(c => c.Name == "DeviceName")).Value;
-            body.wrsno = (await db.Configs.SingleAsync(c => c.Name == "WineRackSerialNumber")).Value;
-            body.scsno = (await db.Configs.SingleAsync(c => c.Name == "ScannerSerialNumber")).Value;
+            body.deviceName = await repository.GetConfig("DeviceName");
+            body.wrsno = await repository.GetConfig("WineRackSerialNumber");
+            body.scsno = await repository.GetConfig("ScannerSerialNumber");
 
             var payload = JsonConvert.SerializeObject(body);
 
@@ -362,18 +270,18 @@ namespace SmartWineRack
                 ContentType = "application/json"
             };
 
-            var connectionString = (await db.Configs.SingleAsync(c => c.Name == "IotHubConnectionString")).Value;
+            var connectionString = await repository.GetConfig("IotHubConnectionString");
             var deviceClient = DeviceClient.CreateFromConnectionString(connectionString, TransportType.Mqtt);
             await deviceClient.SendEventAsync(message);
         }
 
-        private static async Task SendBottleMessage(int slotNumber, string upcCode, MessageTypes messageType, WineRackDbContext db)
+        private static async Task SendBottleMessage(int slotNumber, string upcCode, MessageTypes messageType, WineRackDbContext db, IWineRackDbRepository repository)
         {
             dynamic expando = new ExpandoObject();
             expando.slot = slotNumber;
             expando.upc = upcCode;
 
-            await SendMessageAsync(expando, messageType, db);
+            await SendMessageAsync(expando, messageType, db, repository);
         }
     }
     
@@ -389,10 +297,13 @@ namespace SmartWineRack
             
             dbContext.Database.Migrate();
 
+            var repository = new WineRackDbRepository(dbContext, idCreator);
+
             return new Dependencies
             {
                 IdCreator = idCreator,
-                WineRackDbContext = dbContext
+                WineRackDbContext = dbContext,
+                Repository = repository
             };
         }
     }
@@ -401,6 +312,7 @@ namespace SmartWineRack
     {
         public WineRackDbContext WineRackDbContext { get; set; }
         public StringCreator IdCreator { get; set; }
+        public IWineRackDbRepository Repository { get; set; }
     }
     
 }

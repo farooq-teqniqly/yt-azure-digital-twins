@@ -10,7 +10,7 @@ namespace SmartWineRack
         {
             var rootCommand = new RootCommand("Smart Wine Rack Emulator");
             rootCommand.SetupOnboardIoTHubCommand();
-            rootCommand.SetupConfigIoTHubCommand();
+            rootCommand.SetupConfigCommand();
             rootCommand.SetupBottleCommand();
  
             return await rootCommand.InvokeAsync(args);
