@@ -1,10 +1,16 @@
 ﻿using System.CommandLine;
+using System.CommandLine.Binding;
 using System.Dynamic;
+using System.Reflection;
 using System.Text;
 using Microsoft.Azure.Devices;
 using Microsoft.Azure.Devices.Client;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
 using RandomStringCreator;
+using SmartWineRack.Db;
 using Message = Microsoft.Azure.Devices.Client.Message;
 using TransportType = Microsoft.Azure.Devices.Client.TransportType;
 
@@ -12,9 +18,7 @@ namespace SmartWineRack
 {
     public static class RootCommandExtensions
     {
-        private static readonly string IotHubConnectionStringFile = Path.Join(Directory.GetCurrentDirectory(), "iothubcs.txt");
         private static readonly string DeviceNameFile = Path.Join(Directory.GetCurrentDirectory(), "devicename.txt");
-        private static readonly string OrgNameFile = Path.Join(Directory.GetCurrentDirectory(), "orgname.txt");
         private static readonly string SlotCountFile = Path.Join(Directory.GetCurrentDirectory(), "slotcount.txt");
         private static readonly string SlotsFile = Path.Join(Directory.GetCurrentDirectory(), "slots.json");
 
@@ -34,15 +38,20 @@ namespace SmartWineRack
             onboardIoTHubCommand.AddArgument(connectionStringArg);
             onboardIoTHubCommand.AddArgument(deviceNameArg);
 
-            onboardIoTHubCommand.SetHandler(async (cs, dn) =>
+            onboardIoTHubCommand.SetHandler(async (cs, dn, deps) =>
             {
+                var db = deps.WineRackDbContext;
+                var idCreator = deps.IdCreator;
+
+                await db.Configs.AddAsync(new WineRackConfig {Id = idCreator.Get(10), Name = "DeviceName", Value = dn });
+                await db.SaveChangesAsync();
+
                 var registryManager = RegistryManager.CreateFromConnectionString(cs);
                 var device = new Device(dn);
 
                 await registryManager.AddDeviceAsync(device);
 
-                await WriteFileAsync(DeviceNameFile, dn);
-            }, connectionStringArg, deviceNameArg);
+            }, connectionStringArg, deviceNameArg, new DependenicesBinder());
 
             onboardRootCommand.AddCommand(onboardIoTHubCommand);
             
@@ -60,20 +69,22 @@ namespace SmartWineRack
 
             onboardTwinCommand.AddArgument(slotCountArg);
 
-            onboardTwinCommand.SetHandler(async (on, sc) =>
+            onboardTwinCommand.SetHandler(async (on, sc, deps) =>
             {
-                await WriteFileAsync(OrgNameFile, on);
-                await WriteFileAsync(SlotCountFile, sc.ToString());
-                
-                await WriteFileAsync(SlotsFile, JsonConvert.SerializeObject(new string[sc]));
-                
+                var db = deps.WineRackDbContext;
+                var idCreator = deps.IdCreator;
+
+                await db.Configs.AddAsync(new WineRackConfig { Id = idCreator.Get(10), Name = "Organization", Value = on });
+                await db.Configs.AddAsync(new WineRackConfig { Id = idCreator.Get(10), Name = "SlotCount", Value = sc.ToString() });
+                await db.SaveChangesAsync();
+
                 dynamic expando = new ExpandoObject();
                 expando.org = on;
                 expando.slotcount = sc;
                 
-                await SendMessageAsync(expando, MessageTypes.OnboardTwin);
+                await SendMessageAsync(expando, MessageTypes.OnboardTwin, db);
 
-            }, orgNameArg, slotCountArg);
+            }, orgNameArg, slotCountArg, new DependenicesBinder());
 
             onboardRootCommand.AddCommand(onboardTwinCommand);
 
@@ -84,31 +95,67 @@ namespace SmartWineRack
 
         public static RootCommand SetupConfigIoTHubCommand(this RootCommand rootCommand)
         {
-            var configRootCommand = new Command("config", "Manage the device's Azure IoT Hub local configuration.");
-            var setCommand = new Command("set", "Set the device's Azure IoT Hub local configuration.");
+            var configRootCommand = new Command("config", "Manage the wine rack's comnfiguration.");
+            var addCommand = new Command("add", "Add a wine rack configuration item.");
 
 
-            var connectionStringArg = new Argument<string>(
-                name: "connection-string",
-                description: "The device specific Azure IoT Hub connection string.");
+            var addSettingArg = new Argument<string>(
+                name: "setting",
+                description: "The name of the setting to add.");
 
-            setCommand.AddArgument(connectionStringArg);
+            var addSettingValueArg = new Argument<string>(
+                name: "value",
+                description: "The setting's value.");
 
-            setCommand.SetHandler(async (cs) =>
+            addCommand.AddArgument(addSettingArg);
+            addCommand.AddArgument(addSettingValueArg);
+
+            addCommand.SetHandler(async (sn, sv, deps) =>
             {
-                await WriteFileAsync(IotHubConnectionStringFile, cs);
-            }, connectionStringArg);
+                var db = deps.WineRackDbContext;
+                var idCreator = deps.IdCreator;
+                
+                await db.Configs.AddAsync(new WineRackConfig { Id = idCreator.Get(10), Name = sn, Value = sv });
+                await db.SaveChangesAsync();
+                
+            }, addSettingArg, addSettingValueArg, new DependenicesBinder());
 
-            configRootCommand.AddCommand(setCommand);
+            configRootCommand.AddCommand(addCommand);
 
-            var showCommand = new Command("show", "Show the device's Azure IoT Hub local configuration.");
+            var showCommand = new Command("show", "Show the wine rack's configuration.");
 
-            showCommand.SetHandler(() =>
+            showCommand.SetHandler(async (deps) =>
             {
-                Console.WriteLine(File.ReadAllText(IotHubConnectionStringFile));
-            });
+                var db = deps.WineRackDbContext;
+                var configs = await db.Configs.ToListAsync();
+
+                foreach (var config in configs)
+                {
+                    Console.WriteLine($"{config.Name}={config.Value}");
+                }
+
+            }, new DependenicesBinder());
 
             configRootCommand.AddCommand(showCommand);
+
+            var deleteCommand = new Command("delete", "Delete a configuration setting.");
+
+            var deleteSettingNameArg = new Argument<string>(
+                name: "setting",
+                description: "The name of the setting to delete.");
+
+            deleteCommand.AddArgument(deleteSettingNameArg);
+
+            deleteCommand.SetHandler(async (sn, deps) =>
+            {
+                var db = deps.WineRackDbContext;
+                var config = await db.Configs.SingleAsync(c => c.Name == sn);
+                db.Configs.Remove(config);
+                await db.SaveChangesAsync();
+
+            }, deleteSettingNameArg, new DependenicesBinder());
+
+            configRootCommand.AddCommand(deleteCommand);
 
             rootCommand.AddCommand(configRootCommand);
 
@@ -142,18 +189,19 @@ namespace SmartWineRack
             addCommand.AddArgument(slotNumberArg);
             addCommand.AddArgument(upcCodeArg);
 
-            addCommand.SetHandler(async (sn, upc) =>
+            addCommand.SetHandler(async (sn, upc, deps) =>
             {
+                var db = deps.WineRackDbContext;
                 var slots = await ReadSlotsAsync();
                 var slotCount = await ReadSlotCountAsync();
 
                 slots[sn - 1] = upc;
 
                 await SaveSlotsAsync(slots);
-                await SendBottleMessage(sn, upc, MessageTypes.BottleAdded);
+                await SendBottleMessage(sn, upc, MessageTypes.BottleAdded, db);
                 PrintBottles(slotCount, slots);
 
-            }, slotNumberArg, upcCodeArg);
+            }, slotNumberArg, upcCodeArg, new DependenicesBinder());
 
             bottleRootCommand.AddCommand(addCommand);
 
@@ -161,8 +209,9 @@ namespace SmartWineRack
             
             removeCommand.AddArgument(slotNumberArg);
 
-            removeCommand.SetHandler(async (sn) =>
+            removeCommand.SetHandler(async (sn, deps) =>
             {
+                var db = deps.WineRackDbContext;
                 var slots = await ReadSlotsAsync();
                 var slotCount = await ReadSlotCountAsync();
                 var upc = slots[sn - 1];
@@ -170,10 +219,10 @@ namespace SmartWineRack
                 slots[sn - 1] = $"{slots[sn-1]}(Removed not scanned)";
 
                 await SaveSlotsAsync(slots);
-                await SendBottleMessage(sn, upc, MessageTypes.BottleRemoved);
+                await SendBottleMessage(sn, upc, MessageTypes.BottleRemoved, db);
                 PrintBottles(slotCount, slots);
 
-            }, slotNumberArg);
+            }, slotNumberArg, new DependenicesBinder());
 
             bottleRootCommand.AddCommand(removeCommand);
 
@@ -181,8 +230,9 @@ namespace SmartWineRack
 
             scanCommand.AddArgument(slotNumberArg);
 
-            scanCommand.SetHandler(async (sn) =>
+            scanCommand.SetHandler(async (sn, deps) =>
             {
+                var db = deps.WineRackDbContext;
                 var slots = await ReadSlotsAsync();
                 var slotCount = await ReadSlotCountAsync();
                 var upc = slots[sn - 1];
@@ -190,10 +240,10 @@ namespace SmartWineRack
                 slots[sn - 1] = null!;
 
                 await SaveSlotsAsync(slots);
-                await SendBottleMessage(sn, upc, MessageTypes.BottleScanned);
+                await SendBottleMessage(sn, upc, MessageTypes.BottleScanned, db);
                 PrintBottles(slotCount, slots);
 
-            }, slotNumberArg);
+            }, slotNumberArg, new DependenicesBinder());
 
             bottleRootCommand.AddCommand(scanCommand);
 
@@ -243,7 +293,7 @@ namespace SmartWineRack
             await File.WriteAllTextAsync(path, text);
         }
 
-        private static async Task SendMessageAsync(dynamic body, MessageTypes messageType)
+        private static async Task SendMessageAsync(dynamic body, MessageTypes messageType, WineRackDbContext db)
         {
             body.mtype = messageType.ToString().ToLower();
             body.deviceName = await ReadFileAsync(DeviceNameFile);
@@ -257,18 +307,45 @@ namespace SmartWineRack
                 ContentType = "application/json"
             };
 
-            var connectionString = await File.ReadAllTextAsync(IotHubConnectionStringFile);
+            var connectionString = (await db.Configs.SingleAsync(c => c.Name == "IotHubConnectionString")).Value;
             var deviceClient = DeviceClient.CreateFromConnectionString(connectionString, TransportType.Mqtt);
             await deviceClient.SendEventAsync(message);
         }
 
-        private static async Task SendBottleMessage(int slotNumber, string upcCode, MessageTypes messageType)
+        private static async Task SendBottleMessage(int slotNumber, string upcCode, MessageTypes messageType, WineRackDbContext db)
         {
             dynamic expando = new ExpandoObject();
             expando.slot = slotNumber;
             expando.upc = upcCode;
 
-            await SendMessageAsync(expando, messageType);
+            await SendMessageAsync(expando, messageType, db);
         }
     }
+    
+    public class DependenicesBinder : BinderBase<Dependencies>
+    {
+        protected override Dependencies GetBoundValue(BindingContext bindingContext)
+        {
+            var optionsBuilder = new DbContextOptionsBuilder<WineRackDbContext>();
+            optionsBuilder.UseSqlite($"Data Source={Path.Join(Directory.GetCurrentDirectory(), "swr.db")}");
+
+            var dbContext = new WineRackDbContext(optionsBuilder.Options);
+            var idCreator = new StringCreator("abcdefghijkmnpqrstuvwxyz23456789");
+            
+            dbContext.Database.Migrate();
+
+            return new Dependencies
+            {
+                IdCreator = idCreator,
+                WineRackDbContext = dbContext
+            };
+        }
+    }
+
+    public class Dependencies
+    {
+        public WineRackDbContext WineRackDbContext { get; set; }
+        public StringCreator IdCreator { get; set; }
+    }
+    
 }

@@ -1,4 +1,6 @@
 ﻿using System.CommandLine;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 
 namespace SmartWineRack
 {
@@ -10,7 +12,7 @@ namespace SmartWineRack
             rootCommand.SetupOnboardIoTHubCommand();
             rootCommand.SetupConfigIoTHubCommand();
             rootCommand.SetupBottleCommand();
-
+ 
             return await rootCommand.InvokeAsync(args);
         }
     }

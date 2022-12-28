@@ -77,8 +77,9 @@ If you click **Run Query** no results will be returned because you haven't creat
 The solution contains two projects - a console app representing the wine rack device, and an Azure Function app that processes messages from the wine rack. These projects can be built as Docker containers, simplifying their execution.
 
 1. Open a Powershell session and go to the `src\docker` folder.
-2. Run `docker-compose build`
-3. Run `docker image ls` and verify the following images are listed:
+2. Run `docker-compose pull`
+3. Run `docker-compose build`
+4. Run `docker image ls` and verify the following images are listed:
    - docker-winerack
    - docker-messageprocessor
 
