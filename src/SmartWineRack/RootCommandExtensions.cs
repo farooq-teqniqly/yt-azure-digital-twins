@@ -197,7 +197,7 @@ namespace SmartWineRack
 
             var slotNumberArg = new Argument<int>(
                 name: "slotNumber",
-                description: "The slot number where the bottle will go.");
+                description: "The slot number the bottle belongs to.");
 
             var upcCodeArg = new Argument<string>(
                 name: "upcCode",
@@ -228,25 +228,43 @@ namespace SmartWineRack
 
             removeCommand.SetHandler(async (sn, deps) =>
             {
-                //var db = deps.WineRackDbContext;
-                //var wineRack = await db.WineRacks.Include(r => r.WineRackSlots.Single(s => s.SlotNumber == sn)).SingleAsync();
-                //wineRack.WineRackSlots.Single().Bottle = null;
-                //await db.SaveChangesAsync();
+                var db = deps.WineRackDbContext;
+                var wineRack = await db.WineRacks
+                    .Include(r => r.WineRackSlots)
+                    .ThenInclude(s => s.Bottle)
+                    .SingleAsync();
 
-                //var slots = await ReadSlotsAsync();
-                //var slotCount = await ReadSlotCountAsync();
-                //var upc = slots[sn - 1];
-
-                //slots[sn - 1] = $"{slots[sn - 1]}(Removed not scanned)";
-
-                //await SaveSlotsAsync(slots);
-                //await SendBottleMessage(sn, upc, MessageTypes.BottleRemoved, db);
-                //PrintBottles(slotCount, slots);
+                wineRack.WineRackSlots.Single(s => s.SlotNumber == sn).Bottle.BottleState = BottleState.RemoveNotScanned;
+                await db.SaveChangesAsync();
+                
+                await PrintBottles(db);
 
             }, slotNumberArg, new DependenicesBinder());
 
             bottleRootCommand.AddCommand(removeCommand);
 
+
+            var returnCommand = new Command("return", "Return a bottle that has not been scanned to the wine rack.");
+
+            returnCommand.AddArgument(slotNumberArg);
+
+            returnCommand.SetHandler(async (sn, deps) =>
+            {
+                var db = deps.WineRackDbContext;
+                var wineRack = await db.WineRacks
+                    .Include(r => r.WineRackSlots)
+                    .ThenInclude(s => s.Bottle)
+                    .SingleAsync();
+
+                wineRack.WineRackSlots.Single(s => s.SlotNumber == sn).Bottle.BottleState = BottleState.InPlace;
+                await db.SaveChangesAsync();
+
+                await PrintBottles(db);
+
+            }, slotNumberArg, new DependenicesBinder());
+
+            bottleRootCommand.AddCommand(returnCommand);
+            
             var scanCommand = new Command("scan", "Scan a bottle.");
 
             scanCommand.AddArgument(slotNumberArg);
