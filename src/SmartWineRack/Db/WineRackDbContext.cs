@@ -34,6 +34,7 @@ namespace SmartWineRack.Db
         }
     }
 
+    // TODO: Make these non-nullable per https://endjin.com/blog/2020/09/dotnet-csharp-8-nullable-references-serialization
     public class WineRackConfig
     {
         public string Id { get; set; }
