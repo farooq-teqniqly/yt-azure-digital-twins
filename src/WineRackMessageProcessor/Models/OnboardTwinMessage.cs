@@ -15,8 +15,11 @@ namespace WineRackMessageProcessor.Models
         [JsonProperty("deviceName")]
         public string DeviceName { get; set; }
 
-        [JsonProperty("serialNumber")]
-        public string SerialNumber { get; set; }
+        [JsonProperty("wrsno")]
+        public string WineRackSerialNumber { get; set; }
+
+        [JsonProperty("scsno")]
+        public string ScannerSerialNumber { get; set; }
 
         [JsonProperty("slotCount")]
         public int SlotCount { get; set; }

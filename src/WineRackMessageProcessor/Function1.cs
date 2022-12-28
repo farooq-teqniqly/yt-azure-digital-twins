@@ -77,12 +77,21 @@ namespace WineRackMessageProcessor
                 ModelIds.WineRack,
                 new Dictionary<string, object>
                 {
-                    { "serialNo", onboardTwinMessage.SerialNumber },
+                    { "serialNo", onboardTwinMessage.WineRackSerialNumber },
                     { "name", onboardTwinMessage.DeviceName },
                     { "slotCount", onboardTwinMessage.SlotCount },
                 });
 
+            var scannerTwin = await this.CreateTwin(
+                ModelIds.Scanner,
+                new Dictionary<string, object>
+                {
+                    { "serialNo", onboardTwinMessage.ScannerSerialNumber },
+                    { "name", "Scanner" }
+                });
+
             var ownedByRelationship = await this.CreateRelationship(Relationships.OwnedBy, wineRackTwin, orgTwin);
+            var attachedToRelationship = await this.CreateRelationship(Relationships.AttachedTo, scannerTwin, wineRackTwin);
 
             for (var i = 0; i < onboardTwinMessage.SlotCount; i++)
             {

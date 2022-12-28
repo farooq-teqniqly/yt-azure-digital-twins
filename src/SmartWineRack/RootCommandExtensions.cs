@@ -75,6 +75,8 @@ namespace SmartWineRack
 
                 await db.Configs.AddAsync(new WineRackConfig { Id = idCreator.Get(10), Name = "Organization", Value = on });
                 await db.Configs.AddAsync(new WineRackConfig { Id = idCreator.Get(10), Name = "SlotCount", Value = sc.ToString() });
+                await db.Configs.AddAsync(new WineRackConfig { Id = idCreator.Get(10), Name = "WineRackSerialNumber", Value = idCreator.Get(10) });
+                await db.Configs.AddAsync(new WineRackConfig { Id = idCreator.Get(10), Name = "ScannerSerialNumber", Value = idCreator.Get(10) });
                 await db.SaveChangesAsync();
 
                 dynamic expando = new ExpandoObject();
@@ -296,7 +298,8 @@ namespace SmartWineRack
         {
             body.mtype = messageType.ToString().ToLower();
             body.deviceName = (await db.Configs.SingleAsync(c => c.Name == "DeviceName")).Value;
-            body.serialNumber = new StringCreator("abcdefg1234567").Get(6);
+            body.wrsno = (await db.Configs.SingleAsync(c => c.Name == "WineRackSerialNumber")).Value;
+            body.scsno = (await db.Configs.SingleAsync(c => c.Name == "ScannerSerialNumber")).Value;
 
             var payload = JsonConvert.SerializeObject(body);
 

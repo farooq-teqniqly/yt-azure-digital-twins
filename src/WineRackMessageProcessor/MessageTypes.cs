@@ -15,5 +15,6 @@ namespace WineRackMessageProcessor
     {
         public static string OwnedBy = "ownedBy";
         public static string PartOf = "partOf";
+        public static string AttachedTo = "attachedTo";
     }
 }
