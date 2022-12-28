@@ -43,8 +43,13 @@ namespace SmartWineRack.Db
 
     public class WineRack
     {
+        public WineRack()
+        {
+            this.WineRackSlots = new HashSet<WineRackSlot>();
+        }
+
         public string Id { get; set; }
-        public List<WineRackSlot> WineRackSlots { get; set; }
+        public ICollection<WineRackSlot> WineRackSlots { get; set; }
         public Scanner Scanner { get; set; }
     }
 
@@ -67,6 +72,14 @@ namespace SmartWineRack.Db
         public string UpcCode { get; set; }
 
         public WineRackSlot WineRackSlot { get; set; }
+
+        public BottleState BottleState { get; set; }
+    }
+
+    public enum BottleState
+    {
+        InPlace = 0,
+        RemoveNotScanned
     }
     
 }

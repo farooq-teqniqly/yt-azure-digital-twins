@@ -77,6 +77,24 @@ namespace SmartWineRack
                 await db.Configs.AddAsync(new WineRackConfig { Id = idCreator.Get(10), Name = "SlotCount", Value = sc.ToString() });
                 await db.Configs.AddAsync(new WineRackConfig { Id = idCreator.Get(10), Name = "WineRackSerialNumber", Value = idCreator.Get(10) });
                 await db.Configs.AddAsync(new WineRackConfig { Id = idCreator.Get(10), Name = "ScannerSerialNumber", Value = idCreator.Get(10) });
+
+                var slots = new List<WineRackSlot>(sc);
+
+                for (var i = 0; i < sc; i++)
+                {
+                    slots.Add(new WineRackSlot {Id = idCreator.Get(10), SlotNumber = i + 1});
+                }
+
+
+                var wineRack = new WineRack
+                {
+                    Id = idCreator.Get(10),
+                    Scanner = new Scanner { Id = idCreator.Get(10) },
+                    WineRackSlots = slots
+                };
+
+                await db.WineRacks.AddAsync(wineRack);
+                
                 await db.SaveChangesAsync();
 
                 dynamic expando = new ExpandoObject();
@@ -168,12 +186,10 @@ namespace SmartWineRack
             var bottleRootCommand = new Command("bottle", "Manage the wine rack's bottles.");
             var showCommand = new Command("list", "List the wine rack's bottles.");
 
-            showCommand.SetHandler(async () =>
+            showCommand.SetHandler(async (deps) =>
             {
-                var slots = await ReadSlotsAsync();
-                var slotCount = await ReadSlotCountAsync();
-                PrintBottles(slotCount, slots);
-            });
+                await PrintBottles(deps.WineRackDbContext);
+            }, new DependenicesBinder());
 
             bottleRootCommand.AddCommand(showCommand);
 
@@ -193,14 +209,14 @@ namespace SmartWineRack
             addCommand.SetHandler(async (sn, upc, deps) =>
             {
                 var db = deps.WineRackDbContext;
-                var slots = await ReadSlotsAsync();
-                var slotCount = await ReadSlotCountAsync();
+                var wineRack = await db.WineRacks.Include(r => r.WineRackSlots).SingleAsync();
+                var slot = wineRack.WineRackSlots.Single(s => s.SlotNumber == sn);
 
-                slots[sn - 1] = upc;
+                slot.Bottle = new Bottle { UpcCode = upc, BottleState = BottleState.InPlace};
+                await db.SaveChangesAsync();
 
-                await SaveSlotsAsync(slots);
-                await SendBottleMessage(sn, upc, MessageTypes.BottleAdded, db);
-                PrintBottles(slotCount, slots);
+                //await SendBottleMessage(sn, upc, MessageTypes.BottleAdded, db);
+                await PrintBottles(db);
 
             }, slotNumberArg, upcCodeArg, new DependenicesBinder());
 
@@ -212,16 +228,20 @@ namespace SmartWineRack
 
             removeCommand.SetHandler(async (sn, deps) =>
             {
-                var db = deps.WineRackDbContext;
-                var slots = await ReadSlotsAsync();
-                var slotCount = await ReadSlotCountAsync();
-                var upc = slots[sn - 1];
+                //var db = deps.WineRackDbContext;
+                //var wineRack = await db.WineRacks.Include(r => r.WineRackSlots.Single(s => s.SlotNumber == sn)).SingleAsync();
+                //wineRack.WineRackSlots.Single().Bottle = null;
+                //await db.SaveChangesAsync();
 
-                slots[sn - 1] = $"{slots[sn-1]}(Removed not scanned)";
+                //var slots = await ReadSlotsAsync();
+                //var slotCount = await ReadSlotCountAsync();
+                //var upc = slots[sn - 1];
 
-                await SaveSlotsAsync(slots);
-                await SendBottleMessage(sn, upc, MessageTypes.BottleRemoved, db);
-                PrintBottles(slotCount, slots);
+                //slots[sn - 1] = $"{slots[sn - 1]}(Removed not scanned)";
+
+                //await SaveSlotsAsync(slots);
+                //await SendBottleMessage(sn, upc, MessageTypes.BottleRemoved, db);
+                //PrintBottles(slotCount, slots);
 
             }, slotNumberArg, new DependenicesBinder());
 
@@ -233,16 +253,16 @@ namespace SmartWineRack
 
             scanCommand.SetHandler(async (sn, deps) =>
             {
-                var db = deps.WineRackDbContext;
-                var slots = await ReadSlotsAsync();
-                var slotCount = await ReadSlotCountAsync();
-                var upc = slots[sn - 1];
+                //var db = deps.WineRackDbContext;
+                //var slots = await ReadSlotsAsync();
+                //var slotCount = await ReadSlotCountAsync();
+                //var upc = slots[sn - 1];
 
-                slots[sn - 1] = null!;
+                //slots[sn - 1] = null!;
 
-                await SaveSlotsAsync(slots);
-                await SendBottleMessage(sn, upc, MessageTypes.BottleScanned, db);
-                PrintBottles(slotCount, slots);
+                //await SaveSlotsAsync(slots);
+                //await SendBottleMessage(sn, upc, MessageTypes.BottleScanned, db);
+                //PrintBottles(slotCount, slots);
 
             }, slotNumberArg, new DependenicesBinder());
 
@@ -273,14 +293,27 @@ namespace SmartWineRack
             return slots;
         }
 
-        private static void PrintBottles(int slotCount, string[] slots)
+        private static async Task PrintBottles(WineRackDbContext db)
         {
+            var wineRack = await (db.WineRacks
+                .Include(r => r.WineRackSlots)
+                .ThenInclude(s => s.Bottle))
+                .SingleAsync();
+
             Console.WriteLine("Slot\tBottle");
 
-            for (var slotNumber = 0; slotNumber < slotCount; slotNumber++)
+            foreach (var slot in wineRack.WineRackSlots.OrderBy(s => s.SlotNumber))
             {
-                var bottleText = string.IsNullOrEmpty(slots[slotNumber]) ? "Unoccupied" : slots[slotNumber];
-                Console.WriteLine($"{slotNumber + 1}\t{bottleText}");
+                var bottleText = "Unoccupied";
+
+                if (slot.Bottle != null)
+                {
+                    bottleText = slot.Bottle is { BottleState: BottleState.RemoveNotScanned } ? 
+                        $"{slot.Bottle.UpcCode} (Removed not scanned)" : 
+                        $"{slot.Bottle.UpcCode}";
+                }
+
+                Console.WriteLine($"{slot.SlotNumber}\t{bottleText}");
             }
         }
 

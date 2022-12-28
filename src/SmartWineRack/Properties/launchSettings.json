@@ -2,7 +2,7 @@
   "profiles": {
     "SmartWineRack": {
       "commandName": "Project",
-      "commandLineArgs": "onboard twin \"My Org\" 32"
+      "commandLineArgs": "bottle list"
     },
     "Docker": {
       "commandName": "Docker"
