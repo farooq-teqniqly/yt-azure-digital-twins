@@ -7,13 +7,13 @@
 5. [x] Create Wine Bottle model.
 6. [x] Script to upload models to DT service.
 7. [x] Create Org DT service.
-8. [ ] Create Wine Rack DT instance.
-9. [ ] Create Wine Rack Slot DT instances.
-10. [ ] Create Wine Bottle DT instances.
-11. [ ] Create Scanner DT instance.
-12. [ ] Script/service that simulates a user scanning a ticket and entering the stadium.
-13. [ ] React App - display stadium DT in a card.
-14. [ ] React App - when stadium card is clicked, display list of ticket holders that are in the stadium.
+8. [x] Create Wine Rack DT instance.
+9. [x] Create Wine Rack Slot DT instances.
+10. [ ] When bottle added, create Wine Bottle DT instance.
+11. [ ] When bottle removed, delete Wine Bottle DT instance.
+12. [ ] When bottle scanned, update DT with telemetry.
+13. [ ] When bottle scanned, delete Wine Bottle DT instance.
+14. [x] Create Scanner DT instance.
 15. [x] Create Scanner model.
 16. [x] Script to delete DT models.
 17. [x] Wine rack emulator - add device to IoT hub
@@ -28,4 +28,4 @@
 26. [x] Wine rack emulator - send bottle add message
 27. [x] Wine rack emulator - send bottle removed message
 28. [x] Wine rack emulator - send bottle scanned message
-29. [] Store configs in SQL Server.
+29. [x] Store configs in SQL Lite.
