@@ -6,16 +6,14 @@ using System.Threading.Tasks;
 
 namespace WineRackMessageProcessor
 {
-    //public enum MessageTypes
-    //{
-    //    OnboardTwin = 0,
-    //    BottleAdded,
-    //    BottleRemoved,
-    //    BottleScanned
-    //}
-
     public static class MessageTypes
     {
         public static string OnboardTwin = "onboardtwin";
+    }
+
+    public static class Relationships
+    {
+        public static string OwnedBy = "ownedBy";
+        public static string PartOf = "partOf";
     }
 }

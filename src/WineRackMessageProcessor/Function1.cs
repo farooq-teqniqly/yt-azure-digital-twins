@@ -82,6 +82,8 @@ namespace WineRackMessageProcessor
                     { "slotCount", onboardTwinMessage.SlotCount },
                 });
 
+            var ownedByRelationship = await this.CreateRelationship(Relationships.OwnedBy, wineRackTwin, orgTwin);
+
             for (var i = 0; i < onboardTwinMessage.SlotCount; i++)
             {
                 var slotNumber = i + 1;
@@ -94,6 +96,8 @@ namespace WineRackMessageProcessor
                         {"name", $"Slot-{slotNumber}"},
                         { "occupied", false }
                     });
+
+                var partOfRelationship = await this.CreateRelationship(Relationships.PartOf, slotTwin, wineRackTwin);
             }
         }
 
@@ -125,6 +129,33 @@ namespace WineRackMessageProcessor
 
             var response = await this.dtClient.CreateOrReplaceDigitalTwinAsync(id, twin);
             this.logger.LogInformation($"Created twin. Model id: '{modelId}';Twin id: '{response.Value.Id}'");
+
+            return response.Value;
+        }
+
+        private async Task<BasicRelationship> CreateRelationship(
+            string name,
+            BasicDigitalTwin sourceTwin, 
+            BasicDigitalTwin targetTwin,
+            IDictionary<string, object> properties = null)
+        {
+            var id = this.twinIdService.CreateId();
+
+            var relationship = new BasicRelationship
+            {
+                Id = id,
+                SourceId = sourceTwin.Id,
+                TargetId = targetTwin.Id,
+                Name = name,
+                Properties = properties
+            };
+
+            var response = await this.dtClient.CreateOrReplaceRelationshipAsync(
+                relationship.SourceId, 
+                relationship.Id,
+                    relationship);
+
+            this.logger.LogInformation($"Created relationship. Name: '{response.Value.Name}';Source twin id: '{response.Value.SourceId}';Target twin id: '{response.Value.TargetId}'");
 
             return response.Value;
         }
