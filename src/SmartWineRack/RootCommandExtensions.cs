@@ -1,15 +1,11 @@
 ﻿using System.CommandLine;
 using System.CommandLine.Binding;
 using System.Dynamic;
-using System.Reflection;
 using System.Text;
 using Microsoft.Azure.Devices;
 using Microsoft.Azure.Devices.Client;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
-using RandomStringCreator;
 using SmartWineRack.Db;
 using SmartWineRack.Services;
 using Message = Microsoft.Azure.Devices.Client.Message;
