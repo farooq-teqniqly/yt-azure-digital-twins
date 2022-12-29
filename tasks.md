@@ -29,3 +29,25 @@
 27. [x] Wine rack emulator - send bottle removed message
 28. [x] Wine rack emulator - send bottle scanned message
 29. [x] Store configs in SQL Lite.
+
+## Queries
+
+- Get org by name:
+```powershell
+SELECT T.`$dtId FROM DIGITALTWINS T WHERE IS_OF_MODEL('dtmi:com:thewineshoppe:Organization;1') AND T.name = 'My Org'
+```
+
+- Get wine rack
+```powershell
+SELECT winerack.`$dtId FROM DIGITALTWINS winerack JOIN org RELATED winerack.ownedBy WHERE org.`$dtId = 'cpgkkzvsig'
+```
+
+- Get slots
+```powershell
+SELECT slot FROM DIGITALTWINS slot JOIN winerack RELATED slot.partOf WHERE winerack.`$dtId = '538sn2vtza'
+```
+
+- Get single slot
+```powershell
+SELECT slot FROM DIGITALTWINS slot JOIN winerack RELATED slot.partOf WHERE winerack.`$dtId = '538sn2vtza' AND slot.slotNumber = 2
+```
