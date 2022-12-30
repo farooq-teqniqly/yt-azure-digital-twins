@@ -2,7 +2,7 @@
   "profiles": {
     "SmartWineRack": {
       "commandName": "Project",
-      "commandLineArgs": "bottle list"
+      "commandLineArgs": "bottle add 2 123456"
     },
     "Docker": {
       "commandName": "Docker"

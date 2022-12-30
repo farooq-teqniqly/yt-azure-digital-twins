@@ -3,6 +3,7 @@
     public static class MessageTypes
     {
         public static string OnboardTwin = "onboardtwin";
+        public static string BottleAdded = "bottleadded";
     }
 
     public static class Relationships

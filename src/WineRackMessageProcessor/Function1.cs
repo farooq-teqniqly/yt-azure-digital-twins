@@ -45,6 +45,10 @@ namespace WineRackMessageProcessor
                     {
                        await ProcessOnboardTwinMessage(messageBody);
                     }
+                    else if (messageType == MessageTypes.BottleAdded)
+                    {
+                        await ProcessBottleAddedMessage(messageBody);
+                    }
                     // Replace these two lines with your processing logic.
                     await Task.Yield();
                 }
@@ -65,13 +69,34 @@ namespace WineRackMessageProcessor
                 throw exceptions.Single();
         }
 
+        private async Task ProcessBottleAddedMessage(string messageBody)
+        {
+            var bottleAddedMessage = JsonConvert.DeserializeObject<BottleAddedMessage>(messageBody);
+
+            var orgQueryResult = this.dtClient
+                .QueryAsync<object>(
+                    $"SELECT T.$dtId FROM DIGITALTWINS T WHERE IS_OF_MODEL('dtmi:com:thewineshoppe:Organization;1') AND T.name = '{bottleAddedMessage.Organization}'")
+                .SingleAsync()
+                .Result;
+
+            var orgId = ((System.Text.Json.JsonElement)orgQueryResult).GetProperty("$dtId").GetString();
+            this.logger.LogInformation($"Processing BottleAdded message. Org id: {orgId}");
+
+            var slotQueryResult = this.dtClient
+                .QueryAsync<BasicDigitalTwin>(
+                    $"SELECT slot from DIGITALTWINS MATCH (slot)-[:partOf]->(winerack)-[:ownedBy]->(org) WHERE org.$dtId = '{orgId}' and winerack.name = '{bottleAddedMessage.DeviceName}' and slot.slotNumber = {bottleAddedMessage.Slot}")
+                .SingleAsync()
+                .Result;
+
+        }
+
         private async Task ProcessOnboardTwinMessage(string messageBody)
         {
             var onboardTwinMessage = JsonConvert.DeserializeObject<OnboardTwinMessage>(messageBody);
             
             var orgTwin = await this.CreateTwin(
                 ModelIds.Organization,
-                new Dictionary<string, object> { { "name", onboardTwinMessage.Name } });
+                new Dictionary<string, object> { { "name", onboardTwinMessage.Organization } });
 
             var wineRackTwin = await this.CreateTwin(
                 ModelIds.WineRack,
@@ -120,6 +145,11 @@ namespace WineRackMessageProcessor
             if (type.ToLower() == "onboardtwin")
             {
                 return MessageTypes.OnboardTwin;
+            }
+
+            if (type.ToLower() == "bottleadded")
+            {
+                return MessageTypes.BottleAdded;
             }
 
             throw new InvalidOperationException("Unknown message type.");

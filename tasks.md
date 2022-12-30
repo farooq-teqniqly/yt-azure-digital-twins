@@ -33,21 +33,31 @@
 ## Queries
 
 - Get org by name:
+
 ```powershell
 SELECT T.`$dtId FROM DIGITALTWINS T WHERE IS_OF_MODEL('dtmi:com:thewineshoppe:Organization;1') AND T.name = 'My Org'
 ```
 
 - Get wine rack
+
 ```powershell
 SELECT winerack.`$dtId FROM DIGITALTWINS winerack JOIN org RELATED winerack.ownedBy WHERE org.`$dtId = 'cpgkkzvsig'
 ```
 
 - Get slots
+
 ```powershell
 SELECT slot FROM DIGITALTWINS slot JOIN winerack RELATED slot.partOf WHERE winerack.`$dtId = '538sn2vtza'
 ```
 
 - Get single slot
+
 ```powershell
 SELECT slot FROM DIGITALTWINS slot JOIN winerack RELATED slot.partOf WHERE winerack.`$dtId = '538sn2vtza' AND slot.slotNumber = 2
+```
+
+- Get the Org, Rack, Slot heirarchy
+
+```powershell
+SELECT slot, winerack, org from DIGITALTWINS MATCH (slot)-[:partOf]->(winerack)-[:ownedBy]->(org) WHERE org.$dtId = 'cpgkkzvsig' and winerack.name = 'testwinerack'
 ```
