@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Azure;
 using Azure.DigitalTwins.Core;
 using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.WebJobs;
@@ -83,10 +84,18 @@ namespace WineRackMessageProcessor
             this.logger.LogInformation($"Processing BottleAdded message. Org id: {orgId}");
 
             var slotQueryResult = this.dtClient
-                .QueryAsync<BasicDigitalTwin>(
-                    $"SELECT slot from DIGITALTWINS MATCH (slot)-[:partOf]->(winerack)-[:ownedBy]->(org) WHERE org.$dtId = '{orgId}' and winerack.name = '{bottleAddedMessage.DeviceName}' and slot.slotNumber = {bottleAddedMessage.Slot}")
+                .QueryAsync<object>(
+                    $"SELECT slot.$dtId from DIGITALTWINS MATCH (slot)-[:partOf]->(winerack)-[:ownedBy]->(org) WHERE org.$dtId = '{orgId}' and winerack.name = '{bottleAddedMessage.DeviceName}' and slot.slotNumber = {bottleAddedMessage.Slot}")
                 .SingleAsync()
                 .Result;
+
+            var slotId = ((System.Text.Json.JsonElement)slotQueryResult).GetProperty("$dtId").GetString();
+            this.logger.LogInformation($"Processing BottleAdded message. Slot id: {slotId}");
+
+            var patchDoc = new JsonPatchDocument();
+            patchDoc.AppendReplace("/occupied", true);
+
+            await this.dtClient.UpdateDigitalTwinAsync(slotId, patchDoc);
 
         }
 
