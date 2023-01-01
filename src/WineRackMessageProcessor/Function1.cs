@@ -96,45 +96,28 @@ namespace WineRackMessageProcessor
         private async Task ProcessOnboardTwinMessage(string messageBody)
         {
             var onboardTwinMessage = JsonConvert.DeserializeObject<OnboardTwinMessage>(messageBody);
-            
-            var orgTwin = await this.CreateTwin(
-                ModelIds.Organization,
-                new Dictionary<string, object> { { "name", onboardTwinMessage.Organization } });
 
-            var wineRackTwin = await this.CreateTwin(
-                ModelIds.WineRack,
-                new Dictionary<string, object>
-                {
-                    { "serialNo", onboardTwinMessage.WineRackSerialNumber },
-                    { "name", onboardTwinMessage.DeviceName },
-                    { "slotCount", onboardTwinMessage.SlotCount },
-                });
+            var orgTwin = await this._twinRepository.CreateOrganizationTwin(onboardTwinMessage.Organization);
 
-            var scannerTwin = await this.CreateTwin(
-                ModelIds.Scanner,
-                new Dictionary<string, object>
-                {
-                    { "serialNo", onboardTwinMessage.ScannerSerialNumber },
-                    { "name", "Scanner" }
-                });
+            var wineRackTwin = await this._twinRepository.CreateWineRackTwin(
+                onboardTwinMessage.WineRackSerialNumber,
+                onboardTwinMessage.DeviceName,
+                onboardTwinMessage.SlotCount);
 
-            var ownedByRelationship = await this.CreateRelationship(Relationships.OwnedBy, wineRackTwin, orgTwin);
-            var attachedToRelationship = await this.CreateRelationship(Relationships.AttachedTo, scannerTwin, wineRackTwin);
+            var scannerTwin = await this._twinRepository.CreateScannerTwin(
+                onboardTwinMessage.ScannerSerialNumber,
+                "Scanner");
+
+            await this.CreateRelationship(Relationships.OwnedBy, wineRackTwin, orgTwin);
+            await this.CreateRelationship(Relationships.AttachedTo, scannerTwin, wineRackTwin);
 
             for (var i = 0; i < onboardTwinMessage.SlotCount; i++)
             {
                 var slotNumber = i + 1;
 
-                var slotTwin = await this.CreateTwin(
-                    ModelIds.WineRackSlot,
-                    new Dictionary<string, object>
-                    {
-                        { "slotNumber", slotNumber },
-                        {"name", $"Slot-{slotNumber}"},
-                        { "occupied", false }
-                    });
+                var slotTwin = await this._twinRepository.CreateSlotTwin(slotNumber);
 
-                var partOfRelationship = await this.CreateRelationship(Relationships.PartOf, slotTwin, wineRackTwin);
+                await this.CreateRelationship(Relationships.PartOf, slotTwin, wineRackTwin);
             }
         }
 
@@ -157,24 +140,7 @@ namespace WineRackMessageProcessor
 
             throw new InvalidOperationException("Unknown message type.");
         }
-
-        private async Task<BasicDigitalTwin> CreateTwin(string modelId, IDictionary<string, object> contents)
-        {
-            var id = this.twinIdService.CreateId();
-
-            var twin = new BasicDigitalTwin
-            {
-                Id = id,
-                Metadata = { ModelId = modelId },
-                Contents = contents
-            };
-
-            var response = await this.dtClient.CreateOrReplaceDigitalTwinAsync(id, twin);
-            this.logger.LogInformation($"Created twin. Model id: '{modelId}';Twin id: '{response.Value.Id}'");
-
-            return response.Value;
-        }
-
+        
         private async Task<BasicRelationship> CreateRelationship(
             string name,
             BasicDigitalTwin sourceTwin, 

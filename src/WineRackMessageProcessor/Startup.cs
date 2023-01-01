@@ -18,8 +18,11 @@ namespace WineRackMessageProcessor
             var credential = new EnvironmentCredential();
             var client = new DigitalTwinsClient(new Uri(config["AdtEndpoint"]), credential);
             builder.Services.AddSingleton(client);
-            builder.Services.AddSingleton<ITwinIdService>(_ => new TwinIdService());
-            builder.Services.AddSingleton<ITwinRepository>(_ => new TwinRepository(client));
+
+            var twinIdService = new TwinIdService();
+
+            builder.Services.AddSingleton<ITwinIdService>(_ => twinIdService);
+            builder.Services.AddSingleton<ITwinRepository>(_ => new TwinRepository(client, twinIdService));
         }
     }
 }
