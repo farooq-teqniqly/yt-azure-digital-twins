@@ -4,6 +4,7 @@ using Azure.Identity;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using WineRackMessageProcessor.Services;
 
 [assembly: FunctionsStartup(typeof(WineRackMessageProcessor.Startup))]
 namespace WineRackMessageProcessor
@@ -18,6 +19,7 @@ namespace WineRackMessageProcessor
             var client = new DigitalTwinsClient(new Uri(config["AdtEndpoint"]), credential);
             builder.Services.AddSingleton(client);
             builder.Services.AddSingleton<ITwinIdService>(_ => new TwinIdService());
+            builder.Services.AddSingleton<ITwinRepository>(_ => new TwinRepository(client));
         }
     }
 }

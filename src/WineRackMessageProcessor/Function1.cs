@@ -11,6 +11,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using WineRackMessageProcessor.Models;
+using WineRackMessageProcessor.Services;
 
 namespace WineRackMessageProcessor
 {
@@ -18,12 +19,18 @@ namespace WineRackMessageProcessor
     {
         private readonly DigitalTwinsClient dtClient;
         private readonly ITwinIdService twinIdService;
+        private readonly ITwinRepository _twinRepository;
         private readonly ILogger<Function1> logger;
 
-        public Function1(DigitalTwinsClient dtClient,ITwinIdService twinIdService, ILogger<Function1> logger)
+        public Function1(
+            DigitalTwinsClient dtClient,
+            ITwinIdService twinIdService, 
+            ITwinRepository twinRepository,
+            ILogger<Function1> logger)
         {
             this.dtClient = dtClient;
             this.twinIdService = twinIdService;
+            _twinRepository = twinRepository;
             this.logger = logger;
         }
 
@@ -74,28 +81,15 @@ namespace WineRackMessageProcessor
         {
             var bottleAddedMessage = JsonConvert.DeserializeObject<BottleAddedMessage>(messageBody);
 
-            var orgQueryResult = this.dtClient
-                .QueryAsync<object>(
-                    $"SELECT T.$dtId FROM DIGITALTWINS T WHERE IS_OF_MODEL('dtmi:com:thewineshoppe:Organization;1') AND T.name = '{bottleAddedMessage.Organization}'")
-                .SingleAsync()
-                .Result;
+            var orgId = this._twinRepository.GetTwinId(
+                $"SELECT T.$dtId FROM DIGITALTWINS T WHERE IS_OF_MODEL('dtmi:com:thewineshoppe:Organization;1') AND T.name = '{bottleAddedMessage.Organization}'");
 
-            var orgId = ((System.Text.Json.JsonElement)orgQueryResult).GetProperty("$dtId").GetString();
-            this.logger.LogInformation($"Processing BottleAdded message. Org id: {orgId}");
+            var slotId = this._twinRepository.GetTwinId(
+                $"SELECT slot.$dtId from DIGITALTWINS MATCH (slot)-[:partOf]->(winerack)-[:ownedBy]->(org) WHERE org.$dtId = '{orgId}' and winerack.name = '{bottleAddedMessage.DeviceName}' and slot.slotNumber = {bottleAddedMessage.Slot}");
 
-            var slotQueryResult = this.dtClient
-                .QueryAsync<object>(
-                    $"SELECT slot.$dtId from DIGITALTWINS MATCH (slot)-[:partOf]->(winerack)-[:ownedBy]->(org) WHERE org.$dtId = '{orgId}' and winerack.name = '{bottleAddedMessage.DeviceName}' and slot.slotNumber = {bottleAddedMessage.Slot}")
-                .SingleAsync()
-                .Result;
+            this.logger.LogInformation($"Processing BottleAdded message. Org id: {orgId}; Slot id: {slotId}");
 
-            var slotId = ((System.Text.Json.JsonElement)slotQueryResult).GetProperty("$dtId").GetString();
-            this.logger.LogInformation($"Processing BottleAdded message. Slot id: {slotId}");
-
-            var patchDoc = new JsonPatchDocument();
-            patchDoc.AppendReplace("/occupied", true);
-
-            await this.dtClient.UpdateDigitalTwinAsync(slotId, patchDoc);
+            await this._twinRepository.UpdateTwin(slotId, "/occupied", true);
 
         }
 
