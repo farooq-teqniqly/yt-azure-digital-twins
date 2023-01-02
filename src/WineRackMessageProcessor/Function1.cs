@@ -75,9 +75,8 @@ namespace WineRackMessageProcessor
         private async Task ProcessBottleAddedMessage(string messageBody)
         {
             var bottleAddedMessage = JsonConvert.DeserializeObject<BottleAddedMessage>(messageBody);
-            var slot = this._twinRepository.GetSlotTwin(bottleAddedMessage.Organization, bottleAddedMessage.DeviceName, bottleAddedMessage.Slot);
-            //var orgId = this._twinRepository.GetOrganizationTwinId(bottleAddedMessage.Organization);
-            //var slotId = this._twinRepository.GetSlotTwinId(orgId, bottleAddedMessage.DeviceName,bottleAddedMessage.Slot);
+            var orgId = this._twinRepository.GetOrganizationTwinId(bottleAddedMessage.Organization);
+            var slot = this._twinRepository.GetSlotTwin(orgId, bottleAddedMessage.DeviceName, bottleAddedMessage.Slot);
 
             this.logger.LogInformation($"Processing BottleAdded message. Slot id: {slot.SlotTwinId}; Wine Rack id: {slot.WineRackTwinId}; Org id: {slot.OrganizationTwinId}; ");
 
@@ -85,18 +84,32 @@ namespace WineRackMessageProcessor
 
             var bottleTwin = await this._twinRepository.CreateBottleTwin(bottleAddedMessage.UpcCode);
 
-            await this._twinRepository.CreateRelationship(Relationships.StoredIn, bottleTwin.Id, slot.WineRackTwinId);
+            var relationship = await this._twinRepository.CreateRelationship(Relationships.StoredIn, bottleTwin.Id, slot.SlotTwinId);
+
+            this.logger.LogInformation($"Created relationship. Name: '{relationship.Name}';Source twin id: '{relationship.SourceId}';Target twin id: '{relationship.TargetId}'");
         }
 
         private async Task ProcessBottleRemovedMessage(string messageBody)
         {
             var bottleRemovedMessage = JsonConvert.DeserializeObject<BottleRemovedMessage>(messageBody);
-            var slot = this._twinRepository.GetSlotTwin(bottleRemovedMessage.Organization, bottleRemovedMessage.DeviceName, bottleRemovedMessage.Slot);
+            var orgId = this._twinRepository.GetOrganizationTwinId(bottleRemovedMessage.Organization);
+            var slot = this._twinRepository.GetSlotTwin(orgId, bottleRemovedMessage.DeviceName, bottleRemovedMessage.Slot);
             
             this.logger.LogInformation($"Processing BottleRemoved message. Slot id: {slot.SlotTwinId}; Wine Rack id: {slot.WineRackTwinId}; Org id: {slot.OrganizationTwinId}; ");
 
             await this._twinRepository.UpdateTwin(slot.SlotTwinId, "/occupied", false);
         }
+
+        //private async Task ProcessBottleScannedMessage(string messageBody)
+        //{
+        //    var bottleRemovedMessage = JsonConvert.DeserializeObject<BottleScannedMessage>(messageBody);
+        //    var slot = this._twinRepository.GetSlotTwin(bottleRemovedMessage.Organization, bottleRemovedMessage.DeviceName, bottleRemovedMessage.Slot);
+
+        //    this.logger.LogInformation($"Processing BottleScanned message. Slot id: {slot.SlotTwinId}; Wine Rack id: {slot.WineRackTwinId}; Org id: {slot.OrganizationTwinId}; ");
+
+        //    await this._twinRepository.UpdateTwin(slot.SlotTwinId, "/occupied", false);
+        //    await this._twinRepository.DeleteTwin(slot., "/occupied", false);
+        //}
 
         private async Task ProcessOnboardTwinMessage(string messageBody)
         {
@@ -122,7 +135,9 @@ namespace WineRackMessageProcessor
 
                 var slotTwin = await this._twinRepository.CreateSlotTwin(slotNumber);
 
-                await this._twinRepository.CreateRelationship(Relationships.PartOf, slotTwin.Id, wineRackTwin.Id);
+                var relationship = await this._twinRepository.CreateRelationship(Relationships.PartOf, slotTwin.Id, wineRackTwin.Id);
+
+                this.logger.LogInformation($"Created relationship. Name: '{relationship.Name}';Source twin id: '{relationship.SourceId}';Target twin id: '{relationship.TargetId}'");
             }
         }
 

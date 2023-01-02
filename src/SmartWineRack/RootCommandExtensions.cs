@@ -190,7 +190,6 @@ namespace SmartWineRack
             addCommand.SetHandler(async (sn, upc, deps) =>
             {
                 await deps.Repository.AddBottle(upc, sn);
-
                 await deps.MessageService.SendBottleMessageAsync(sn, upc, MessageTypes.BottleAdded);
                 await PrintBottles(deps.Repository);
 
@@ -204,7 +203,9 @@ namespace SmartWineRack
 
             removeCommand.SetHandler(async (sn, deps) =>
             {
+                var upcCode = (await deps.Repository.GetSlots()).Single(s => s.SlotNumber == sn).Bottle.UpcCode;
                 await deps.Repository.RemoveBottle(sn);
+                await deps.MessageService.SendBottleMessageAsync(sn, upcCode, MessageTypes.BottleRemoved);
                 await PrintBottles(deps.Repository);
 
             }, slotNumberArg, new DependenciesBinder());

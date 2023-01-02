@@ -5,6 +5,11 @@
   "displayName": "Wine Bottle",
   "contents": [
     {
+      "@type": "Property",
+      "name": "upcCode",
+      "schema": "string"
+    },
+    {
       "@type": "Relationship",
       "name": "storedIn",
       "displayName": "Bottle stored in Wine Rack Slot",

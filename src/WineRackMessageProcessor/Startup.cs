@@ -24,10 +24,7 @@ namespace WineRackMessageProcessor
 
             builder.Services.AddSingleton<ITwinIdService>(_ => twinIdService);
 
-            builder.Services.AddSingleton<ITwinRepository>(_ => new TwinRepository(
-                    client, 
-                    twinIdService, 
-                    builder.Services.BuildServiceProvider().GetRequiredService<ILogger<TwinRepository>>()));
+            builder.Services.AddSingleton<ITwinRepository>(_ => new TwinRepository(client, twinIdService));
         }
     }
 }

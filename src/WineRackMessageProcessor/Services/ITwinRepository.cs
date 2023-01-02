@@ -39,13 +39,11 @@ namespace WineRackMessageProcessor.Services
     {
         private readonly DigitalTwinsClient _dtClient;
         private readonly ITwinIdService _twinIdService;
-        private readonly ILogger<TwinRepository> logger;
-
-        public TwinRepository(DigitalTwinsClient dtClient, ITwinIdService twinIdService, ILogger<TwinRepository> logger)
+        
+        public TwinRepository(DigitalTwinsClient dtClient, ITwinIdService twinIdService)
         {
             _dtClient = dtClient;
             _twinIdService = twinIdService;
-            this.logger = logger;
         }
 
         public string GetTwinId(string query)
@@ -159,8 +157,6 @@ namespace WineRackMessageProcessor.Services
                 relationship.SourceId,
                 relationship.Id,
                 relationship);
-
-            this.logger.LogInformation($"Created relationship. Name: '{response.Value.Name}';Source twin id: '{response.Value.SourceId}';Target twin id: '{response.Value.TargetId}'");
 
             return response.Value;
         }
