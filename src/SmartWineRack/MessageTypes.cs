@@ -5,6 +5,7 @@
         OnboardTwin = 0,
         BottleAdded,
         BottleRemoved,
-        BottleScanned
+        BottleScanned,
+        BottleReturned
     }
 }

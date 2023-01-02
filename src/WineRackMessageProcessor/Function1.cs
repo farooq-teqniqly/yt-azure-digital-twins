@@ -55,6 +55,10 @@ namespace WineRackMessageProcessor
                     {
                         await ProcessBottleScannedMessage(messageBody);
                     }
+                    else if (messageType == MessageTypes.BottleReturned)
+                    {
+                        await ProcessBottleReturnedMessage(messageBody);
+                    }
 
                     await Task.Yield();
                 }
@@ -99,6 +103,17 @@ namespace WineRackMessageProcessor
             this.logger.LogInformation($"Processing BottleRemoved message. Slot id: {slot.SlotTwinId}; Wine Rack id: {slot.WineRackTwinId}; Org id: {slot.OrganizationTwinId}; ");
 
             await this._twinRepository.UpdateTwin(slot.SlotTwinId, "/occupied", false);
+        }
+
+        private async Task ProcessBottleReturnedMessage(string messageBody)
+        {
+            var bottleReturnedMessage = JsonConvert.DeserializeObject<BottleReturnedMessage>(messageBody);
+            var orgId = this._twinRepository.GetOrganizationTwinId(bottleReturnedMessage.Organization);
+            var slot = this._twinRepository.GetSlot(orgId, bottleReturnedMessage.DeviceName, bottleReturnedMessage.Slot);
+
+            this.logger.LogInformation($"Processing BottleReturned message. Slot id: {slot.SlotTwinId}; Wine Rack id: {slot.WineRackTwinId}; Org id: {slot.OrganizationTwinId}; ");
+
+            await this._twinRepository.UpdateTwin(slot.SlotTwinId, "/occupied", true);
         }
 
         private async Task ProcessBottleScannedMessage(string messageBody)
@@ -160,6 +175,7 @@ namespace WineRackMessageProcessor
                 "bottleadded" => MessageTypes.BottleAdded,
                 "bottleremoved" => MessageTypes.BottleRemoved,
                 "bottlescanned" => MessageTypes.BottleScanned,
+                "bottlereturned" => MessageTypes.BottleReturned,
                 _ => throw new InvalidOperationException("Unknown message type.")
             };
         }

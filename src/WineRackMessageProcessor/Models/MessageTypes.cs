@@ -6,6 +6,7 @@
         public static string BottleAdded = "bottleadded";
         public static string BottleRemoved = "bottleremoved";
         public static string BottleScanned = "bottlescanned";
+        public static string BottleReturned = "bottlereturned";
     }
 
     public static class Relationships
