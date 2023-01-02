@@ -52,6 +52,10 @@ namespace WineRackMessageProcessor
                     {
                         await ProcessBottleRemovedMessage(messageBody);
                     }
+                    else if (messageType == MessageTypes.BottleScanned)
+                    {
+                        await ProcessBottleScannedMessage(messageBody);
+                    }
                     // Replace these two lines with your processing logic.
                     await Task.Yield();
                 }
@@ -100,16 +104,21 @@ namespace WineRackMessageProcessor
             await this._twinRepository.UpdateTwin(slot.SlotTwinId, "/occupied", false);
         }
 
-        //private async Task ProcessBottleScannedMessage(string messageBody)
-        //{
-        //    var bottleRemovedMessage = JsonConvert.DeserializeObject<BottleScannedMessage>(messageBody);
-        //    var slot = this._twinRepository.GetSlotTwin(bottleRemovedMessage.Organization, bottleRemovedMessage.DeviceName, bottleRemovedMessage.Slot);
+        private async Task ProcessBottleScannedMessage(string messageBody)
+        {
+            var bottleScannedMessage = JsonConvert.DeserializeObject<BottleScannedMessage>(messageBody);
+            var orgId = this._twinRepository.GetOrganizationTwinId(bottleScannedMessage.Organization);
+            var slot = this._twinRepository.GetSlotTwin(orgId, bottleScannedMessage.DeviceName, bottleScannedMessage.Slot, true);
 
-        //    this.logger.LogInformation($"Processing BottleScanned message. Slot id: {slot.SlotTwinId}; Wine Rack id: {slot.WineRackTwinId}; Org id: {slot.OrganizationTwinId}; ");
+            this.logger.LogInformation($"Processing BottleScanned message. Slot id: {slot.SlotTwinId}; Wine Rack id: {slot.WineRackTwinId}; Org id: {slot.OrganizationTwinId}; ");
 
-        //    await this._twinRepository.UpdateTwin(slot.SlotTwinId, "/occupied", false);
-        //    await this._twinRepository.DeleteTwin(slot., "/occupied", false);
-        //}
+            await this._twinRepository.UpdateTwin(slot.SlotTwinId, "/occupied", false);
+
+            var relationship = await this._twinRepository.GetRelationship(slot.BottleTwinId);
+
+            await this._twinRepository.DeleteRelationship(slot.BottleTwinId, relationship.Id);
+            await this._twinRepository.DeleteTwin(slot.BottleTwinId);
+        }
 
         private async Task ProcessOnboardTwinMessage(string messageBody)
         {
@@ -161,6 +170,11 @@ namespace WineRackMessageProcessor
             if (type.ToLower() == "bottleremoved")
             {
                 return MessageTypes.BottleRemoved;
+            }
+
+            if (type.ToLower() == "bottlescanned")
+            {
+                return MessageTypes.BottleScanned;
             }
 
             throw new InvalidOperationException("Unknown message type.");

@@ -18,7 +18,7 @@ namespace WineRackMessageProcessor.Services
 
         string GetOrganizationTwinId(string name);
         string GetSlotTwinId(string organizationId, string deviceName, int slotNumber);
-        TwinRepository.Slot GetSlotTwin(string organizationId, string deviceName, int slotNumber);
+        TwinRepository.Slot GetSlotTwin(string organizationId, string deviceName, int slotNumber, bool containsBottleTwin = false);
 
         Task<BasicDigitalTwin> CreateOrganizationTwin(string name);
         Task UpdateTwin<T>(string id, string path, T value);
@@ -33,6 +33,10 @@ namespace WineRackMessageProcessor.Services
             IDictionary<string, object> properties = null);
 
         Task<BasicDigitalTwin> CreateBottleTwin(string upcCode);
+        Task DeleteTwin(string twinId);
+
+        Task<BasicRelationship> GetRelationship(string twinId);
+        Task DeleteRelationship(string twinId, string relationshipId);
     }
 
     public class TwinRepository : ITwinRepository
@@ -64,7 +68,7 @@ namespace WineRackMessageProcessor.Services
                 $"SELECT slot.$dtId from DIGITALTWINS MATCH (slot)-[:partOf]->(winerack)-[:ownedBy]->(org) WHERE org.$dtId = '{organizationId}' and winerack.name = '{deviceName}' and slot.slotNumber = {slotNumber}");
         }
 
-        public Slot GetSlotTwin(string organizationId, string deviceName, int slotNumber)
+        public Slot GetSlotTwin(string organizationId, string deviceName, int slotNumber, bool containsBottleTwin = false)
         {
             var query = $"SELECT slot.$dtId AS slotTwinId, " +
                         $"winerack.$dtId AS wineRackTwinId, " +
@@ -74,6 +78,19 @@ namespace WineRackMessageProcessor.Services
                         $"WHERE org.$dtId = '{organizationId}' " +
                         $"AND winerack.name = '{deviceName}' " +
                         $"AND slot.slotNumber = {slotNumber}";
+
+            if (containsBottleTwin)
+            {
+                query = $"SELECT slot.$dtId AS slotTwinId, " +
+                        $"bottle.$dtId AS bottleTwinId, " +
+                        $"winerack.$dtId AS wineRackTwinId, " +
+                        $"org.$dtId AS organizationTwinId " +
+                        $"FROM DIGITALTWINS " +
+                        $"MATCH (bottle)-[:storedIn]->(slot)-[:partOf]->(winerack)-[:ownedBy]->(org) " +
+                        $"WHERE org.$dtId = '{organizationId}' " +
+                        $"AND winerack.name = '{deviceName}' " +
+                        $"AND slot.slotNumber = {slotNumber}";
+            }
             
             var queryResult = this._dtClient.QueryAsync<object>(query).SingleAsync().Result;
             var jsonElement = (System.Text.Json.JsonElement)queryResult;
@@ -81,6 +98,7 @@ namespace WineRackMessageProcessor.Services
             return new Slot
             {
                 SlotTwinId = jsonElement.GetProperty("slotTwinId").GetString(),
+                BottleTwinId = containsBottleTwin ? jsonElement.GetProperty("bottleTwinId").GetString() : null,
                 WineRackTwinId = jsonElement.GetProperty("wineRackTwinId").GetString(),
                 OrganizationTwinId = jsonElement.GetProperty("organizationTwinId").GetString(),
             };
@@ -171,6 +189,21 @@ namespace WineRackMessageProcessor.Services
                 });
         }
 
+        public async Task DeleteTwin(string twinId)
+        {
+            await this._dtClient.DeleteDigitalTwinAsync(twinId);
+        }
+
+        public async Task<BasicRelationship> GetRelationship(string twinId)
+        {
+            return await this._dtClient.GetRelationshipsAsync<BasicRelationship>(twinId).SingleAsync();
+        }
+
+        public async Task DeleteRelationship(string twinId, string relationshipId)
+        {
+            await this._dtClient.DeleteRelationshipAsync(twinId, relationshipId);
+        }
+
         private async Task<BasicDigitalTwin> CreateTwin(string modelId, IDictionary<string, object> contents)
         {
             var id = this._twinIdService.CreateId();
@@ -190,6 +223,7 @@ namespace WineRackMessageProcessor.Services
         public class Slot
         {
             public string SlotTwinId { get; set; }
+            public string BottleTwinId { get; set; }
             public string WineRackTwinId { get; set; }
             public string OrganizationTwinId { get; set; }
         }

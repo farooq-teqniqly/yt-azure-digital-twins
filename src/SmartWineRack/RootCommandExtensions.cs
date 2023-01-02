@@ -1,6 +1,7 @@
 ﻿using System.CommandLine;
 using System.CommandLine.Binding;
 using System.Dynamic;
+using System.Reflection.Emit;
 using Microsoft.Azure.Devices;
 using Microsoft.EntityFrameworkCore;
 using SmartWineRack.Db;
@@ -232,7 +233,9 @@ namespace SmartWineRack
 
             scanCommand.SetHandler(async (sn, deps) =>
             {
+                var upcCode = (await deps.Repository.GetSlots()).Single(s => s.SlotNumber == sn).Bottle.UpcCode;
                 await deps.Repository.ScanBottle(sn);
+                await deps.MessageService.SendBottleMessageAsync(sn, upcCode, MessageTypes.BottleScanned);
                 await PrintBottles(deps.Repository);
 
             }, slotNumberArg, new DependenciesBinder());
