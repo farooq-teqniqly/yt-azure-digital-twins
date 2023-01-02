@@ -1,9 +1,17 @@
-﻿namespace WineRackMessageProcessor.Models;
+﻿// <copyright file="Slot.cs" company="Teqniqly">
+// Copyright (c) Teqniqly. All rights reserved.
+// </copyright>
 
-public class Slot
+namespace WineRackMessageProcessor.Models
 {
-    public string SlotTwinId { get; set; }
-    public string BottleTwinId { get; set; }
-    public string WineRackTwinId { get; set; }
-    public string OrganizationTwinId { get; set; }
+    public class Slot
+    {
+        public string SlotTwinId { get; set; }
+
+        public string BottleTwinId { get; set; }
+
+        public string WineRackTwinId { get; set; }
+
+        public string OrganizationTwinId { get; set; }
+    }
 }

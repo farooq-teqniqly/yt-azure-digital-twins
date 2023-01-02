@@ -4,12 +4,22 @@
     <AzureFunctionsVersion>v4</AzureFunctionsVersion>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="stylecop.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <AdditionalFiles Include="stylecop.json" />
+  </ItemGroup>
+  <ItemGroup>
       <PackageReference Include="Azure.DigitalTwins.Core" Version="1.4.0" />
       <PackageReference Include="Azure.Identity" Version="1.8.0" />
       <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
       <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.EventHubs" Version="4.3.0" />
       <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="4.0.1" />
       <PackageReference Include="RandomStringCreator" Version="2.0.0" />
+      <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
       <PackageReference Include="System.Linq.Async" Version="6.0.1" />
   </ItemGroup>
   <ItemGroup>

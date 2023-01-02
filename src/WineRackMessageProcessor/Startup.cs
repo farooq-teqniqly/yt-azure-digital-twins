@@ -1,4 +1,8 @@
-﻿using System;
+﻿// <copyright file="Startup.cs" company="Teqniqly">
+// Copyright (c) Teqniqly. All rights reserved.
+// </copyright>
+
+using System;
 using Azure.DigitalTwins.Core;
 using Azure.Identity;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
@@ -7,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using WineRackMessageProcessor.Services;
 
 [assembly: FunctionsStartup(typeof(WineRackMessageProcessor.Startup))]
+
 namespace WineRackMessageProcessor
 {
     public class Startup : FunctionsStartup

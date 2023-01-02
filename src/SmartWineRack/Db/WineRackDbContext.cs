@@ -1,7 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿// <copyright file="WineRackDbContext.cs" company="Teqniqly">
+// Copyright (c) Teqniqly. All rights reserved.
+// </copyright>
 
 namespace SmartWineRack.Db
 {
+    using Microsoft.EntityFrameworkCore;
+
     public class WineRackDbContext : DbContext
     {
         public WineRackDbContext()
@@ -14,6 +18,7 @@ namespace SmartWineRack.Db
         }
 
         public DbSet<WineRackConfig> Configs { get; set; }
+
         public DbSet<WineRack> WineRacks { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -29,52 +34,4 @@ namespace SmartWineRack.Db
     }
 
     // TODO: Make these non-nullable per https://endjin.com/blog/2020/09/dotnet-csharp-8-nullable-references-serialization
-    public class WineRackConfig
-    {
-        public string Id { get; set; }
-        public string Name { get; set; }
-        public string Value { get; set; }
-    }
-
-    public class WineRack
-    {
-        public WineRack()
-        {
-            this.WineRackSlots = new HashSet<WineRackSlot>();
-        }
-
-        public string Id { get; set; }
-        public ICollection<WineRackSlot> WineRackSlots { get; set; }
-        public Scanner Scanner { get; set; }
-    }
-
-    public class WineRackSlot
-    {
-        public string Id { get; set; }
-        public int SlotNumber { get; set; }
-        public Bottle Bottle { get; set; }
-    }
-
-    public class Scanner
-    {
-        public string Id { get; set; }
-        public WineRack WineRack { get; set; }
-    }
-
-    public class Bottle
-    {
-        public string Id { get; set; }
-        public string UpcCode { get; set; }
-
-        public WineRackSlot WineRackSlot { get; set; }
-
-        public BottleState BottleState { get; set; }
-    }
-
-    public enum BottleState
-    {
-        InPlace = 0,
-        RemoveNotScanned
-    }
-    
 }

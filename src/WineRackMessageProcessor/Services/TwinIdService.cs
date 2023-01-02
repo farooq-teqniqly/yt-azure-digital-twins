@@ -1,17 +1,23 @@
-﻿using RandomStringCreator;
+﻿// <copyright file="TwinIdService.cs" company="Teqniqly">
+// Copyright (c) Teqniqly. All rights reserved.
+// </copyright>
 
-namespace WineRackMessageProcessor.Services;
-
-public class TwinIdService : ITwinIdService
+namespace WineRackMessageProcessor.Services
 {
-    private readonly StringCreator idCreator;
+    using RandomStringCreator;
 
-    public TwinIdService()
-    { 
-        idCreator = new StringCreator("abcdefghijkmnpqrstuvwxyz123456789");
-    }
-    public string CreateId()
+    public class TwinIdService : ITwinIdService
     {
-        return idCreator.Get(10);
+        private readonly StringCreator idCreator;
+
+        public TwinIdService()
+        {
+            this.idCreator = new StringCreator("abcdefghijkmnpqrstuvwxyz123456789");
+        }
+
+        public string CreateId()
+        {
+            return this.idCreator.Get(10);
+        }
     }
 }

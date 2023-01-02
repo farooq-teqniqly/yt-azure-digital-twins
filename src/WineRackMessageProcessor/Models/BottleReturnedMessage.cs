@@ -1,15 +1,20 @@
-﻿using Newtonsoft.Json;
+﻿// <copyright file="BottleReturnedMessage.cs" company="Teqniqly">
+// Copyright (c) Teqniqly. All rights reserved.
+// </copyright>
 
-namespace WineRackMessageProcessor.Models;
-
-public class BottleReturnedMessage
+namespace WineRackMessageProcessor.Models
 {
-    [JsonProperty("deviceName")]
-    public string DeviceName { get; set; }
+    using Newtonsoft.Json;
 
-    [JsonProperty("org")]
-    public string Organization { get; set; }
+    public class BottleReturnedMessage
+    {
+        [JsonProperty("deviceName")]
+        public string DeviceName { get; set; }
 
-    [JsonProperty("slot")]
-    public int Slot { get; set; }
+        [JsonProperty("org")]
+        public string Organization { get; set; }
+
+        [JsonProperty("slot")]
+        public int Slot { get; set; }
+    }
 }

@@ -1,13 +1,18 @@
-﻿using RandomStringCreator;
+﻿// <copyright file="IdFactory.cs" company="Teqniqly">
+// Copyright (c) Teqniqly. All rights reserved.
+// </copyright>
 
-namespace SmartWineRack.Services;
-
-public class IdFactory: IIdFactory
+namespace SmartWineRack.Services
 {
-    private readonly StringCreator stringCreator = new();
-        
-    public string CreateId()
+    using RandomStringCreator;
+
+    public class IdFactory: IIdFactory
     {
-        return stringCreator.Get(10);
+        private readonly StringCreator stringCreator = new ();
+
+        public string CreateId()
+        {
+            return this.stringCreator.Get(10);
+        }
     }
 }

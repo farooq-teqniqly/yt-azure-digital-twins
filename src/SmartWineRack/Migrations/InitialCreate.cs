@@ -1,10 +1,14 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿// <copyright file="20221228002439_InitialCreate.cs" company="Teqniqly">
+// Copyright (c) Teqniqly. All rights reserved.
+// </copyright>
 
 #nullable disable
 
 namespace SmartWineRack.Migrations
 {
+    using System;
+    using Microsoft.EntityFrameworkCore.Migrations;
+
     /// <inheritdoc />
     public partial class InitialCreate : Migration
     {
@@ -17,7 +21,7 @@ namespace SmartWineRack.Migrations
                 {
                     Id = table.Column<string>(type: "TEXT", maxLength: 10, nullable: false),
                     Created = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "current_timestamp"),
-                    Modified = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "current_timestamp")
+                    Modified = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "current_timestamp"),
                 },
                 constraints: table =>
                 {
@@ -32,7 +36,7 @@ namespace SmartWineRack.Migrations
                     Name = table.Column<string>(type: "TEXT", maxLength: 60, nullable: false),
                     Value = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false),
                     Created = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "current_timestamp"),
-                    Modified = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "current_timestamp")
+                    Modified = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "current_timestamp"),
                 },
                 constraints: table =>
                 {
@@ -45,7 +49,7 @@ namespace SmartWineRack.Migrations
                 {
                     Id = table.Column<string>(type: "TEXT", maxLength: 10, nullable: false),
                     Created = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "current_timestamp"),
-                    Modified = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "current_timestamp")
+                    Modified = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "current_timestamp"),
                 },
                 constraints: table =>
                 {
@@ -66,7 +70,7 @@ namespace SmartWineRack.Migrations
                     SlotNumber = table.Column<int>(type: "INTEGER", nullable: false),
                     Created = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "current_timestamp"),
                     Modified = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "current_timestamp"),
-                    WineRackId = table.Column<string>(type: "TEXT", nullable: true)
+                    WineRackId = table.Column<string>(type: "TEXT", nullable: true),
                 },
                 constraints: table =>
                 {
@@ -85,7 +89,7 @@ namespace SmartWineRack.Migrations
                     Id = table.Column<string>(type: "TEXT", maxLength: 10, nullable: false),
                     UpcCode = table.Column<string>(type: "TEXT", nullable: false),
                     Created = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "current_timestamp"),
-                    Modified = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "current_timestamp")
+                    Modified = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "current_timestamp"),
                 },
                 constraints: table =>
                 {

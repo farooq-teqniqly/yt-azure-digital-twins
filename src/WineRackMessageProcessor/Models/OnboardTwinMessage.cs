@@ -1,7 +1,11 @@
-﻿using Newtonsoft.Json;
+﻿// <copyright file="OnboardTwinMessage.cs" company="Teqniqly">
+// Copyright (c) Teqniqly. All rights reserved.
+// </copyright>
 
 namespace WineRackMessageProcessor.Models
 {
+    using Newtonsoft.Json;
+
     public class OnboardTwinMessage
     {
         [JsonProperty("org")]

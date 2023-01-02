@@ -1,6 +1,11 @@
-﻿namespace SmartWineRack.Services;
+﻿// <copyright file="IIdFactory.cs" company="Teqniqly">
+// Copyright (c) Teqniqly. All rights reserved.
+// </copyright>
 
-public interface IIdFactory
+namespace SmartWineRack.Services
 {
-    public string CreateId();
+    public interface IIdFactory
+    {
+        public string CreateId();
+    }
 }
