@@ -4,6 +4,7 @@ using Azure.Identity;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using WineRackMessageProcessor.Services;
 
 [assembly: FunctionsStartup(typeof(WineRackMessageProcessor.Startup))]
@@ -22,7 +23,11 @@ namespace WineRackMessageProcessor
             var twinIdService = new TwinIdService();
 
             builder.Services.AddSingleton<ITwinIdService>(_ => twinIdService);
-            builder.Services.AddSingleton<ITwinRepository>(_ => new TwinRepository(client, twinIdService));
+
+            builder.Services.AddSingleton<ITwinRepository>(_ => new TwinRepository(
+                    client, 
+                    twinIdService, 
+                    builder.Services.BuildServiceProvider().GetRequiredService<ILogger<TwinRepository>>()));
         }
     }
 }

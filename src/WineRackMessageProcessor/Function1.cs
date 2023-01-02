@@ -5,7 +5,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Azure;
-using Azure.DigitalTwins.Core;
 using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
@@ -17,19 +16,11 @@ namespace WineRackMessageProcessor
 {
     public class Function1
     {
-        private readonly DigitalTwinsClient dtClient;
-        private readonly ITwinIdService twinIdService;
         private readonly ITwinRepository _twinRepository;
         private readonly ILogger<Function1> logger;
 
-        public Function1(
-            DigitalTwinsClient dtClient,
-            ITwinIdService twinIdService, 
-            ITwinRepository twinRepository,
-            ILogger<Function1> logger)
+        public Function1(ITwinRepository twinRepository, ILogger<Function1> logger)
         {
-            this.dtClient = dtClient;
-            this.twinIdService = twinIdService;
             _twinRepository = twinRepository;
             this.logger = logger;
         }
@@ -57,6 +48,10 @@ namespace WineRackMessageProcessor
                     {
                         await ProcessBottleAddedMessage(messageBody);
                     }
+                    else if (messageType == MessageTypes.BottleRemoved)
+                    {
+                        await ProcessBottleRemovedMessage(messageBody);
+                    }
                     // Replace these two lines with your processing logic.
                     await Task.Yield();
                 }
@@ -80,17 +75,27 @@ namespace WineRackMessageProcessor
         private async Task ProcessBottleAddedMessage(string messageBody)
         {
             var bottleAddedMessage = JsonConvert.DeserializeObject<BottleAddedMessage>(messageBody);
+            var slot = this._twinRepository.GetSlotTwin(bottleAddedMessage.Organization, bottleAddedMessage.DeviceName, bottleAddedMessage.Slot);
+            //var orgId = this._twinRepository.GetOrganizationTwinId(bottleAddedMessage.Organization);
+            //var slotId = this._twinRepository.GetSlotTwinId(orgId, bottleAddedMessage.DeviceName,bottleAddedMessage.Slot);
 
-            var orgId = this._twinRepository.GetTwinId(
-                $"SELECT T.$dtId FROM DIGITALTWINS T WHERE IS_OF_MODEL('dtmi:com:thewineshoppe:Organization;1') AND T.name = '{bottleAddedMessage.Organization}'");
+            this.logger.LogInformation($"Processing BottleAdded message. Slot id: {slot.SlotTwinId}; Wine Rack id: {slot.WineRackTwinId}; Org id: {slot.OrganizationTwinId}; ");
 
-            var slotId = this._twinRepository.GetTwinId(
-                $"SELECT slot.$dtId from DIGITALTWINS MATCH (slot)-[:partOf]->(winerack)-[:ownedBy]->(org) WHERE org.$dtId = '{orgId}' and winerack.name = '{bottleAddedMessage.DeviceName}' and slot.slotNumber = {bottleAddedMessage.Slot}");
+            await this._twinRepository.UpdateTwin(slot.SlotTwinId, "/occupied", true);
 
-            this.logger.LogInformation($"Processing BottleAdded message. Org id: {orgId}; Slot id: {slotId}");
+            var bottleTwin = await this._twinRepository.CreateBottleTwin(bottleAddedMessage.UpcCode);
 
-            await this._twinRepository.UpdateTwin(slotId, "/occupied", true);
+            await this._twinRepository.CreateRelationship(Relationships.StoredIn, bottleTwin.Id, slot.WineRackTwinId);
+        }
 
+        private async Task ProcessBottleRemovedMessage(string messageBody)
+        {
+            var bottleRemovedMessage = JsonConvert.DeserializeObject<BottleRemovedMessage>(messageBody);
+            var slot = this._twinRepository.GetSlotTwin(bottleRemovedMessage.Organization, bottleRemovedMessage.DeviceName, bottleRemovedMessage.Slot);
+            
+            this.logger.LogInformation($"Processing BottleRemoved message. Slot id: {slot.SlotTwinId}; Wine Rack id: {slot.WineRackTwinId}; Org id: {slot.OrganizationTwinId}; ");
+
+            await this._twinRepository.UpdateTwin(slot.SlotTwinId, "/occupied", false);
         }
 
         private async Task ProcessOnboardTwinMessage(string messageBody)
@@ -108,8 +113,8 @@ namespace WineRackMessageProcessor
                 onboardTwinMessage.ScannerSerialNumber,
                 "Scanner");
 
-            await this.CreateRelationship(Relationships.OwnedBy, wineRackTwin, orgTwin);
-            await this.CreateRelationship(Relationships.AttachedTo, scannerTwin, wineRackTwin);
+            await this._twinRepository.CreateRelationship(Relationships.OwnedBy, wineRackTwin.Id, orgTwin.Id);
+            await this._twinRepository.CreateRelationship(Relationships.AttachedTo, scannerTwin.Id, wineRackTwin.Id);
 
             for (var i = 0; i < onboardTwinMessage.SlotCount; i++)
             {
@@ -117,7 +122,7 @@ namespace WineRackMessageProcessor
 
                 var slotTwin = await this._twinRepository.CreateSlotTwin(slotNumber);
 
-                await this.CreateRelationship(Relationships.PartOf, slotTwin, wineRackTwin);
+                await this._twinRepository.CreateRelationship(Relationships.PartOf, slotTwin.Id, wineRackTwin.Id);
             }
         }
 
@@ -138,34 +143,13 @@ namespace WineRackMessageProcessor
                 return MessageTypes.BottleAdded;
             }
 
+            if (type.ToLower() == "bottleremoved")
+            {
+                return MessageTypes.BottleRemoved;
+            }
+
             throw new InvalidOperationException("Unknown message type.");
         }
         
-        private async Task<BasicRelationship> CreateRelationship(
-            string name,
-            BasicDigitalTwin sourceTwin, 
-            BasicDigitalTwin targetTwin,
-            IDictionary<string, object> properties = null)
-        {
-            var id = this.twinIdService.CreateId();
-
-            var relationship = new BasicRelationship
-            {
-                Id = id,
-                SourceId = sourceTwin.Id,
-                TargetId = targetTwin.Id,
-                Name = name,
-                Properties = properties
-            };
-
-            var response = await this.dtClient.CreateOrReplaceRelationshipAsync(
-                relationship.SourceId, 
-                relationship.Id,
-                    relationship);
-
-            this.logger.LogInformation($"Created relationship. Name: '{response.Value.Name}';Source twin id: '{response.Value.SourceId}';Target twin id: '{response.Value.TargetId}'");
-
-            return response.Value;
-        }
     }
 }

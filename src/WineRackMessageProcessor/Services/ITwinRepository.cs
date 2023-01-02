@@ -1,10 +1,14 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Azure;
 using Azure.DigitalTwins.Core;
+using Microsoft.Extensions.Logging;
+using WineRackMessageProcessor.Models;
 
 namespace WineRackMessageProcessor.Services
 {
@@ -12,29 +16,76 @@ namespace WineRackMessageProcessor.Services
     {
         string GetTwinId(string query);
 
+        string GetOrganizationTwinId(string name);
+        string GetSlotTwinId(string organizationId, string deviceName, int slotNumber);
+        TwinRepository.Slot GetSlotTwin(string organizationId, string deviceName, int slotNumber);
+
         Task<BasicDigitalTwin> CreateOrganizationTwin(string name);
         Task UpdateTwin<T>(string id, string path, T value);
         Task<BasicDigitalTwin> CreateWineRackTwin(string serialNumber, string deviceName, int slotCount);
         Task<BasicDigitalTwin> CreateScannerTwin(string serialNumber, string name);
-        Task<BasicDigitalTwin> CreateSlotTwin(int slotNumber)
+        Task<BasicDigitalTwin> CreateSlotTwin(int slotNumber);
 
+        Task<BasicRelationship> CreateRelationship(
+            string name,
+            string sourceTwinId,
+            string targetTwinId,
+            IDictionary<string, object> properties = null);
+
+        Task<BasicDigitalTwin> CreateBottleTwin(string upcCode);
     }
 
     public class TwinRepository : ITwinRepository
     {
         private readonly DigitalTwinsClient _dtClient;
         private readonly ITwinIdService _twinIdService;
+        private readonly ILogger<TwinRepository> logger;
 
-        public TwinRepository(DigitalTwinsClient dtClient, ITwinIdService twinIdService)
+        public TwinRepository(DigitalTwinsClient dtClient, ITwinIdService twinIdService, ILogger<TwinRepository> logger)
         {
             _dtClient = dtClient;
             _twinIdService = twinIdService;
+            this.logger = logger;
         }
 
         public string GetTwinId(string query)
         {
             var queryResult = this._dtClient.QueryAsync<object>(query).SingleAsync().Result;
             return ((System.Text.Json.JsonElement)queryResult).GetProperty("$dtId").GetString();
+        }
+
+        public string GetOrganizationTwinId(string name)
+        {
+            return this.GetTwinId(
+                $"SELECT T.$dtId FROM DIGITALTWINS T WHERE IS_OF_MODEL('dtmi:com:thewineshoppe:Organization;1') AND T.name = '{name}'");
+        }
+
+        public string GetSlotTwinId(string organizationId, string deviceName, int slotNumber)
+        {
+            return this.GetTwinId(
+                $"SELECT slot.$dtId from DIGITALTWINS MATCH (slot)-[:partOf]->(winerack)-[:ownedBy]->(org) WHERE org.$dtId = '{organizationId}' and winerack.name = '{deviceName}' and slot.slotNumber = {slotNumber}");
+        }
+
+        public Slot GetSlotTwin(string organizationId, string deviceName, int slotNumber)
+        {
+            var query = $"SELECT slot.$dtId AS slotTwinId, " +
+                        $"winerack.$dtId AS wineRackTwinId, " +
+                        $"org.$dtId AS organizationTwinId " +
+                        $"FROM DIGITALTWINS " +
+                        $"MATCH (slot)-[:partOf]->(winerack)-[:ownedBy]->(org) " +
+                        $"WHERE org.$dtId = '{organizationId}' " +
+                        $"AND winerack.name = '{deviceName}' " +
+                        $"AND slot.slotNumber = {slotNumber}";
+            
+            var queryResult = this._dtClient.QueryAsync<object>(query).SingleAsync().Result;
+            var jsonElement = (System.Text.Json.JsonElement)queryResult;
+
+            return new Slot
+            {
+                SlotTwinId = jsonElement.GetProperty("slotTwinId").GetString(),
+                WineRackTwinId = jsonElement.GetProperty("wineRackTwinId").GetString(),
+                OrganizationTwinId = jsonElement.GetProperty("organizationTwinId").GetString(),
+            };
         }
 
         public async Task<BasicDigitalTwin> CreateOrganizationTwin(string name)
@@ -87,6 +138,43 @@ namespace WineRackMessageProcessor.Services
                 });
         }
 
+        public async Task<BasicRelationship> CreateRelationship(
+            string name, 
+            string sourceTwinId, 
+            string targetTwinId,
+            IDictionary<string, object> properties = null)
+        {
+            var id = this._twinIdService.CreateId();
+
+            var relationship = new BasicRelationship
+            {
+                Id = id,
+                SourceId = sourceTwinId,
+                TargetId = targetTwinId,
+                Name = name,
+                Properties = properties
+            };
+
+            var response = await this._dtClient.CreateOrReplaceRelationshipAsync(
+                relationship.SourceId,
+                relationship.Id,
+                relationship);
+
+            this.logger.LogInformation($"Created relationship. Name: '{response.Value.Name}';Source twin id: '{response.Value.SourceId}';Target twin id: '{response.Value.TargetId}'");
+
+            return response.Value;
+        }
+
+        public async Task<BasicDigitalTwin> CreateBottleTwin(string upcCode)
+        {
+            return await this.CreateTwin(
+                ModelIds.Bottle,
+                new Dictionary<string, object>
+                {
+                    { "upcCode", upcCode }
+                });
+        }
+
         private async Task<BasicDigitalTwin> CreateTwin(string modelId, IDictionary<string, object> contents)
         {
             var id = this._twinIdService.CreateId();
@@ -101,6 +189,13 @@ namespace WineRackMessageProcessor.Services
             var response = await this._dtClient.CreateOrReplaceDigitalTwinAsync(id, twin);
             
             return response.Value;
+        }
+
+        public class Slot
+        {
+            public string SlotTwinId { get; set; }
+            public string WineRackTwinId { get; set; }
+            public string OrganizationTwinId { get; set; }
         }
 
     }

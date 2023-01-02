@@ -6,4 +6,5 @@ public static class ModelIds
     public static string WineRack = "dtmi:com:thewineshoppe:WineRack;1";
     public static string WineRackSlot = "dtmi:com:thewineshoppe:WineRackSlot;1";
     public static string Scanner = "dtmi:com:thewineshoppe:Scanner;1";
+    public static string Bottle = "dtmi:com:thewineshoppe:WineBottle;1";
 }

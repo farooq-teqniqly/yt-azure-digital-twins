@@ -33,8 +33,18 @@ namespace WineRackMessageProcessor.Models
 
         [JsonProperty("upc")]
         public string UpcCode { get; set; }
+        
+    }
 
-        [JsonProperty("wrsno")]
-        public string WineRackSerialNumber { get; set; }
+    public class BottleRemovedMessage
+    {
+        [JsonProperty("deviceName")]
+        public string DeviceName { get; set; }
+
+        [JsonProperty("org")]
+        public string Organization { get; set; }
+
+        [JsonProperty("slot")]
+        public int Slot { get; set; }
     }
 }
