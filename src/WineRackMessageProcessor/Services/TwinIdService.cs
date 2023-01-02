@@ -1,6 +1,6 @@
 ﻿using RandomStringCreator;
 
-namespace WineRackMessageProcessor;
+namespace WineRackMessageProcessor.Services;
 
 public class TwinIdService : ITwinIdService
 {

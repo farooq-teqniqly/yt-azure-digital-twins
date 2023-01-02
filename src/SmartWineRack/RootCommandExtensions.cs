@@ -1,7 +1,6 @@
 ﻿using System.CommandLine;
 using System.CommandLine.Binding;
 using System.Dynamic;
-using System.Reflection.Emit;
 using Microsoft.Azure.Devices;
 using Microsoft.EntityFrameworkCore;
 using SmartWineRack.Db;

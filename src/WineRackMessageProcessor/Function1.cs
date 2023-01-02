@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Azure;
 using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
@@ -30,11 +29,11 @@ namespace WineRackMessageProcessor
         {
             var exceptions = new List<Exception>();
 
-            foreach (EventData eventData in events)
+            foreach (var eventData in events)
             {
                 try
                 {
-                    string messageBody = Encoding.UTF8.GetString(eventData.Body.Array, eventData.Body.Offset, eventData.Body.Count);
+                    var messageBody = Encoding.UTF8.GetString(eventData.Body.Array, eventData.Body.Offset, eventData.Body.Count);
 
                     this.logger.LogInformation($"C# Event Hub trigger function received a message: {messageBody}");
 
@@ -56,31 +55,29 @@ namespace WineRackMessageProcessor
                     {
                         await ProcessBottleScannedMessage(messageBody);
                     }
-                    // Replace these two lines with your processing logic.
+
                     await Task.Yield();
                 }
                 catch (Exception e)
                 {
-                    // We need to keep processing the rest of the batch - capture this exception and continue.
-                    // Also, consider capturing details of the message that failed processing so it can be processed again later.
                     exceptions.Add(e);
                 }
             }
-
-            // Once processing of the batch is complete, if any messages in the batch failed processing throw an exception so that there is a record of the failure.
-
-            if (exceptions.Count > 1)
-                throw new AggregateException(exceptions);
-
-            if (exceptions.Count == 1)
-                throw exceptions.Single();
+            
+            switch (exceptions.Count)
+            {
+                case > 1:
+                    throw new AggregateException(exceptions);
+                case 1:
+                    throw exceptions.Single();
+            }
         }
 
         private async Task ProcessBottleAddedMessage(string messageBody)
         {
             var bottleAddedMessage = JsonConvert.DeserializeObject<BottleAddedMessage>(messageBody);
             var orgId = this._twinRepository.GetOrganizationTwinId(bottleAddedMessage.Organization);
-            var slot = this._twinRepository.GetSlotTwin(orgId, bottleAddedMessage.DeviceName, bottleAddedMessage.Slot);
+            var slot = this._twinRepository.GetSlot(orgId, bottleAddedMessage.DeviceName, bottleAddedMessage.Slot);
 
             this.logger.LogInformation($"Processing BottleAdded message. Slot id: {slot.SlotTwinId}; Wine Rack id: {slot.WineRackTwinId}; Org id: {slot.OrganizationTwinId}; ");
 
@@ -97,7 +94,7 @@ namespace WineRackMessageProcessor
         {
             var bottleRemovedMessage = JsonConvert.DeserializeObject<BottleRemovedMessage>(messageBody);
             var orgId = this._twinRepository.GetOrganizationTwinId(bottleRemovedMessage.Organization);
-            var slot = this._twinRepository.GetSlotTwin(orgId, bottleRemovedMessage.DeviceName, bottleRemovedMessage.Slot);
+            var slot = this._twinRepository.GetSlot(orgId, bottleRemovedMessage.DeviceName, bottleRemovedMessage.Slot);
             
             this.logger.LogInformation($"Processing BottleRemoved message. Slot id: {slot.SlotTwinId}; Wine Rack id: {slot.WineRackTwinId}; Org id: {slot.OrganizationTwinId}; ");
 
@@ -108,7 +105,7 @@ namespace WineRackMessageProcessor
         {
             var bottleScannedMessage = JsonConvert.DeserializeObject<BottleScannedMessage>(messageBody);
             var orgId = this._twinRepository.GetOrganizationTwinId(bottleScannedMessage.Organization);
-            var slot = this._twinRepository.GetSlotTwin(orgId, bottleScannedMessage.DeviceName, bottleScannedMessage.Slot, true);
+            var slot = this._twinRepository.GetSlot(orgId, bottleScannedMessage.DeviceName, bottleScannedMessage.Slot, true);
 
             this.logger.LogInformation($"Processing BottleScanned message. Slot id: {slot.SlotTwinId}; Wine Rack id: {slot.WineRackTwinId}; Org id: {slot.OrganizationTwinId}; ");
 
@@ -157,27 +154,14 @@ namespace WineRackMessageProcessor
 
             var type = regex.Groups["messageType"].Value;
 
-            if (type.ToLower() == "onboardtwin")
+            return type.ToLower() switch
             {
-                return MessageTypes.OnboardTwin;
-            }
-
-            if (type.ToLower() == "bottleadded")
-            {
-                return MessageTypes.BottleAdded;
-            }
-
-            if (type.ToLower() == "bottleremoved")
-            {
-                return MessageTypes.BottleRemoved;
-            }
-
-            if (type.ToLower() == "bottlescanned")
-            {
-                return MessageTypes.BottleScanned;
-            }
-
-            throw new InvalidOperationException("Unknown message type.");
+                "onboardtwin" => MessageTypes.OnboardTwin,
+                "bottleadded" => MessageTypes.BottleAdded,
+                "bottleremoved" => MessageTypes.BottleRemoved,
+                "bottlescanned" => MessageTypes.BottleScanned,
+                _ => throw new InvalidOperationException("Unknown message type.")
+            };
         }
         
     }

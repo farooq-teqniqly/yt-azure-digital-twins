@@ -1,4 +1,4 @@
-﻿namespace WineRackMessageProcessor
+﻿namespace WineRackMessageProcessor.Models
 {
     public static class MessageTypes
     {

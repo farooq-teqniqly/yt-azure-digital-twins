@@ -1,4 +1,4 @@
-﻿namespace WineRackMessageProcessor
+﻿namespace WineRackMessageProcessor.Services
 {
     public interface ITwinIdService
     {
