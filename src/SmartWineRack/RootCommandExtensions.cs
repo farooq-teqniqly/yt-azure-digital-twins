@@ -14,16 +14,16 @@ namespace SmartWineRack
     {
         public static RootCommand SetupOnboardIoTHubCommand(this RootCommand rootCommand)
         {
-            var onboardRootCommand = new Command(name: "onboard", description: "Onboard this device.");
-            var onboardIoTHubCommand = new Command(name: "iothub", description: "Onboard this device to the Azure IoT Hub.");
+            var onboardRootCommand = new Command("onboard", "Onboard this device.");
+            var onboardIoTHubCommand = new Command("iothub", "Onboard this device to the Azure IoT Hub.");
 
             var connectionStringArg = new Argument<string>(
-                name: "connection-string",
-                description: "The Azure IoT Hub connection string.");
+                "connection-string",
+                "The Azure IoT Hub connection string.");
 
             var deviceNameArg = new Argument<string>(
-                name: "name",
-                description: "The name of the device.");
+                "name",
+                "The name of the device.");
 
             onboardIoTHubCommand.AddArgument(connectionStringArg);
             onboardIoTHubCommand.AddArgument(deviceNameArg);
@@ -43,17 +43,17 @@ namespace SmartWineRack
 
             onboardRootCommand.AddCommand(onboardIoTHubCommand);
 
-            var onboardTwinCommand = new Command(name: "twin", description: "Onboard this device to Azure Digital Twins.");
+            var onboardTwinCommand = new Command("twin", "Onboard this device to Azure Digital Twins.");
 
             var orgNameArg = new Argument<string>(
-                name: "organization",
-                description: "The name of the organization owning the device.");
+                "organization",
+                "The name of the organization owning the device.");
 
             onboardTwinCommand.AddArgument(orgNameArg);
 
             var slotCountArg = new Argument<int>(
-                name: "slotCount",
-                description: "The number of slots this device supports.");
+                "slotCount",
+                "The number of slots this device supports.");
 
             onboardTwinCommand.AddArgument(slotCountArg);
 
@@ -92,16 +92,16 @@ namespace SmartWineRack
 
         public static RootCommand SetupConfigCommand(this RootCommand rootCommand)
         {
-            var configRootCommand = new Command(name: "config", description: "Manage the wine rack's configuration.");
-            var addCommand = new Command(name: "add", description: "Add a wine rack configuration item.");
+            var configRootCommand = new Command("config", "Manage the wine rack's configuration.");
+            var addCommand = new Command("add", "Add a wine rack configuration item.");
 
             var addSettingArg = new Argument<string>(
-                name: "setting",
-                description: "The name of the setting to add.");
+                "setting",
+                "The name of the setting to add.");
 
             var addSettingValueArg = new Argument<string>(
-                name: "value",
-                description: "The setting's value.");
+                "value",
+                "The setting's value.");
 
             addCommand.AddArgument(addSettingArg);
             addCommand.AddArgument(addSettingValueArg);
@@ -117,7 +117,7 @@ namespace SmartWineRack
 
             configRootCommand.AddCommand(addCommand);
 
-            var listCommand = new Command(name: "list", description: "List the wine rack's configuration.");
+            var listCommand = new Command("list", "List the wine rack's configuration.");
 
             listCommand.SetHandler(
                 async (deps) =>
@@ -132,11 +132,11 @@ namespace SmartWineRack
 
             configRootCommand.AddCommand(listCommand);
 
-            var deleteCommand = new Command(name: "delete", description: "Delete a configuration setting.");
+            var deleteCommand = new Command("delete", "Delete a configuration setting.");
 
             var deleteSettingNameArg = new Argument<string>(
-                name: "setting",
-                description: "The name of the setting to delete.");
+                "setting",
+                "The name of the setting to delete.");
 
             deleteCommand.AddArgument(deleteSettingNameArg);
 
@@ -157,11 +157,11 @@ namespace SmartWineRack
 
         public static RootCommand SetupDecommissionCommand(this RootCommand rootCommand)
         {
-            var decommissionRootCommand = new Command(name: "decom", description: "Decomission the wine rack.");
+            var decommissionRootCommand = new Command("decom", "Decomission the wine rack.");
 
             var deviceNameArg = new Argument<string>(
-                name: "name",
-                description: "The name of the device.");
+                "name",
+                "The name of the device.");
 
             decommissionRootCommand.AddArgument(deviceNameArg);
 
@@ -178,95 +178,95 @@ namespace SmartWineRack
 
         public static RootCommand SetupBottleCommand(this RootCommand rootCommand)
         {
-            var bottleRootCommand = new Command(name: "bottle", description: "Manage the wine rack's bottles.");
-            var showCommand = new Command(name: "list", description: "List the wine rack's bottles.");
+            var bottleRootCommand = new Command("bottle", "Manage the wine rack's bottles.");
+            var showCommand = new Command("list", "List the wine rack's bottles.");
 
             showCommand.SetHandler(
-                handle: async (deps) =>
+                async (deps) =>
             {
-                await PrintBottles(repository: deps.Repository);
-            }, symbol: new DependenciesBinder());
+                await PrintBottles(deps.Repository);
+            }, new DependenciesBinder());
 
-            bottleRootCommand.AddCommand(command: showCommand);
+            bottleRootCommand.AddCommand(showCommand);
 
-            var addCommand = new Command(name: "add", description: "Add a bottle to the wine rack.");
+            var addCommand = new Command("add", "Add a bottle to the wine rack.");
 
             var slotNumberArg = new Argument<int>(
-                name: "slotNumber",
-                description: "The slot number the bottle belongs to.");
+                "slotNumber",
+                "The slot number the bottle belongs to.");
 
             var upcCodeArg = new Argument<string>(
-                name: "upcCode",
-                description: "The bottle's UPC code.");
+                "upcCode",
+                "The bottle's UPC code.");
 
-            addCommand.AddArgument(argument: slotNumberArg);
-            addCommand.AddArgument(argument: upcCodeArg);
+            addCommand.AddArgument(slotNumberArg);
+            addCommand.AddArgument(upcCodeArg);
 
             addCommand.SetHandler(
-                handle: async (sn, upc, deps) =>
+                async (sn, upc, deps) =>
             {
-                await deps.Repository.AddBottle(upcCode: upc, slotNumber: sn);
-                await deps.MessageService.SendBottleMessageAsync(slotNumber: sn, upcCode: upc, messageType: MessageTypes.BottleAdded);
-                await PrintBottles(repository: deps.Repository);
+                await deps.Repository.AddBottle(upc, sn);
+                await deps.MessageService.SendBottleMessageAsync(sn, upc, MessageTypes.BottleAdded);
+                await PrintBottles(deps.Repository);
             },
                 slotNumberArg,
                 upcCodeArg,
                 new DependenciesBinder());
 
-            bottleRootCommand.AddCommand(command: addCommand);
+            bottleRootCommand.AddCommand(addCommand);
 
-            var removeCommand = new Command(name: "remove", description: "Remove a bottle from the wine rack.");
+            var removeCommand = new Command("remove", "Remove a bottle from the wine rack.");
 
-            removeCommand.AddArgument(argument: slotNumberArg);
+            removeCommand.AddArgument(slotNumberArg);
 
             removeCommand.SetHandler(
-                handle: async (sn, deps) =>
+                async (sn, deps) =>
             {
-                var upcCode = (await deps.Repository.GetSlots()).Single(predicate: s => s.SlotNumber == sn).Bottle.UpcCode;
-                await deps.Repository.RemoveBottle(slotNumber: sn);
-                await deps.MessageService.SendBottleMessageAsync(slotNumber: sn, upcCode: upcCode, messageType: MessageTypes.BottleRemoved);
-                await PrintBottles(repository: deps.Repository);
+                var upcCode = (await deps.Repository.GetSlots()).Single(s => s.SlotNumber == sn).Bottle.UpcCode;
+                await deps.Repository.RemoveBottle(sn);
+                await deps.MessageService.SendBottleMessageAsync(sn, upcCode, MessageTypes.BottleRemoved);
+                await PrintBottles(deps.Repository);
             },
                 slotNumberArg,
                 new DependenciesBinder());
 
-            bottleRootCommand.AddCommand(command: removeCommand);
+            bottleRootCommand.AddCommand(removeCommand);
 
-            var returnCommand = new Command(name: "return", description: "Return a bottle that has not been scanned to the wine rack.");
+            var returnCommand = new Command("return", "Return a bottle that has not been scanned to the wine rack.");
 
-            returnCommand.AddArgument(argument: slotNumberArg);
+            returnCommand.AddArgument(slotNumberArg);
 
             returnCommand.SetHandler(
-                handle: async (sn, deps) =>
+                async (sn, deps) =>
             {
-                var upcCode = (await deps.Repository.GetSlots()).Single(predicate: s => s.SlotNumber == sn).Bottle.UpcCode;
-                await deps.Repository.ReturnBottle(slotNumber: sn);
-                await deps.MessageService.SendBottleMessageAsync(slotNumber: sn, upcCode: upcCode, messageType: MessageTypes.BottleReturned);
-                await PrintBottles(repository: deps.Repository);
+                var upcCode = (await deps.Repository.GetSlots()).Single(s => s.SlotNumber == sn).Bottle.UpcCode;
+                await deps.Repository.ReturnBottle(sn);
+                await deps.MessageService.SendBottleMessageAsync(sn, upcCode, MessageTypes.BottleReturned);
+                await PrintBottles(deps.Repository);
             },
                 slotNumberArg,
                 new DependenciesBinder());
 
-            bottleRootCommand.AddCommand(command: returnCommand);
+            bottleRootCommand.AddCommand(returnCommand);
 
-            var scanCommand = new Command(name: "scan", description: "Scan a bottle and permanently remove it from the wine rack.");
+            var scanCommand = new Command("scan", "Scan a bottle and permanently remove it from the wine rack.");
 
-            scanCommand.AddArgument(argument: slotNumberArg);
+            scanCommand.AddArgument(slotNumberArg);
 
             scanCommand.SetHandler(
-                handle: async (sn, deps) =>
+                async (sn, deps) =>
             {
-                var upcCode = (await deps.Repository.GetSlots()).Single(predicate: s => s.SlotNumber == sn).Bottle.UpcCode;
-                await deps.Repository.ScanBottle(slotNumber: sn);
-                await deps.MessageService.SendBottleMessageAsync(slotNumber: sn, upcCode: upcCode, messageType: MessageTypes.BottleScanned);
-                await PrintBottles(repository: deps.Repository);
+                var upcCode = (await deps.Repository.GetSlots()).Single(s => s.SlotNumber == sn).Bottle.UpcCode;
+                await deps.Repository.ScanBottle(sn);
+                await deps.MessageService.SendBottleMessageAsync(sn, upcCode, MessageTypes.BottleScanned);
+                await PrintBottles(deps.Repository);
             },
                 slotNumberArg,
                 new DependenciesBinder());
 
-            bottleRootCommand.AddCommand(command: scanCommand);
+            bottleRootCommand.AddCommand(scanCommand);
 
-            rootCommand.AddCommand(command: bottleRootCommand);
+            rootCommand.AddCommand(bottleRootCommand);
 
             return rootCommand;
         }
