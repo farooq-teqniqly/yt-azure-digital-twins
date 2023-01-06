@@ -1,4 +1,4 @@
-﻿// <copyright file="OnboardTwinMessage.cs" company="Teqniqly">
+﻿// <copyright file="CommissionWineRackMessage.cs" company="Teqniqly">
 // Copyright (c) Teqniqly. All rights reserved.
 // </copyright>
 
@@ -6,10 +6,10 @@ namespace WineRackMessageProcessor.Models
 {
     using Newtonsoft.Json;
 
-    public class OnboardTwinMessage
+    public class CommissionWineRackMessage
     {
         [JsonProperty("org")]
-        public string Organization { get; set; }
+        public string OrganizationName { get; set; }
 
         [JsonProperty("deviceName")]
         public string DeviceName { get; set; }

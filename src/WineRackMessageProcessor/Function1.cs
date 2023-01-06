@@ -138,9 +138,9 @@ namespace WineRackMessageProcessor
 
         private async Task ProcessOnboardTwinMessage(string messageBody)
         {
-            var onboardTwinMessage = JsonConvert.DeserializeObject<OnboardTwinMessage>(messageBody);
+            var onboardTwinMessage = JsonConvert.DeserializeObject<CommissionWineRackMessage>(messageBody);
 
-            var orgTwin = await this.twinRepository.CreateOrganizationTwin(onboardTwinMessage.Organization);
+            var orgTwin = await this.twinRepository.CreateOrganizationTwin(onboardTwinMessage.OrganizationName);
 
             var wineRackTwin = await this.twinRepository.CreateWineRackTwin(
                 onboardTwinMessage.WineRackSerialNumber,

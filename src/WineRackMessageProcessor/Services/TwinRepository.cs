@@ -2,6 +2,8 @@
 // Copyright (c) Teqniqly. All rights reserved.
 // </copyright>
 
+using System;
+
 namespace WineRackMessageProcessor.Services
 {
     using System.Collections.Generic;
@@ -50,17 +52,21 @@ namespace WineRackMessageProcessor.Services
                         $"AND winerack.name = '{deviceName}' " +
                         $"AND slot.slotNumber = {slotNumber}";
             }
-
-            var queryResult = this.dtClient.QueryAsync<object>(query).SingleAsync().Result;
-            var jsonElement = (System.Text.Json.JsonElement)queryResult;
-
-            return new Slot
+            
+            var slot = this.Query<Slot>(query, pageable =>
             {
-                SlotTwinId = jsonElement.GetProperty("slotTwinId").GetString(),
-                BottleTwinId = containsBottleTwin ? jsonElement.GetProperty("bottleTwinId").GetString() : null,
-                WineRackTwinId = jsonElement.GetProperty("wineRackTwinId").GetString(),
-                OrganizationTwinId = jsonElement.GetProperty("organizationTwinId").GetString(),
-            };
+                var twin = pageable.SingleAsync().Result;
+
+                return new Slot
+                {
+                    SlotTwinId = twin.Contents["slotTwinId"].ToString(),
+                    BottleTwinId = containsBottleTwin ? twin.Contents["bottleTwinId"].ToString() : null,
+                    WineRackTwinId = twin.Contents["wineRackTwinId"].ToString(),
+                    OrganizationTwinId = twin.Contents["organizationTwinId"].ToString(),
+                };
+            });
+
+            return slot;
         }
 
         public async Task<BasicDigitalTwin> CreateOrganizationTwin(string name)
@@ -165,8 +171,13 @@ namespace WineRackMessageProcessor.Services
 
         private string GetTwinId(string query)
         {
-            var queryResult = this.dtClient.QueryAsync<object>(query).SingleAsync().Result;
-            return ((System.Text.Json.JsonElement)queryResult).GetProperty("$dtId").GetString();
+            var id = this.Query<string>(query, pageable =>
+            {
+                var twin = pageable.SingleAsync().Result;
+                return twin.Id;
+            });
+
+            return id;
         }
 
         private string GetTwinId(string model, string twinName)
@@ -189,6 +200,12 @@ namespace WineRackMessageProcessor.Services
             var response = await this.dtClient.CreateOrReplaceDigitalTwinAsync(id, twin);
 
             return response.Value;
+        }
+
+        private T Query<T>(string query, Func<AsyncPageable<BasicDigitalTwin>, T> mapper)
+        {
+            var queryResult = this.dtClient.QueryAsync<BasicDigitalTwin>(query);
+            return mapper(queryResult);
         }
     }
 }

@@ -1,0 +1,14 @@
+﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=88314e87_002Ddb8e_002D4129_002Db9e6_002Dea16d8df3fb8/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="GetWineRackGraph #2" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;xUnit::EBCC5F2B-E065-4AE7-867E-F31B391E53CC::net6.0::DigitalTwinTests.DigitalTwinQueryTests.GetWineRackGraph&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::EBCC5F2B-E065-4AE7-867E-F31B391E53CC::net6.0::DigitalTwinTests.DigitalTwinQueryTests.GetOrganization&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::EBCC5F2B-E065-4AE7-867E-F31B391E53CC::net6.0::DigitalTwinTests.DigitalTwinQueryTests.CanGetOrgId&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::EBCC5F2B-E065-4AE7-867E-F31B391E53CC::net6.0::DigitalTwinTests.DigitalTwinQueryTests.CanGetSlot&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=e94f3516_002D9b8c_002D4951_002Db534_002D094c17c7c44b/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="GetWineRackGraph" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;xUnit::EBCC5F2B-E065-4AE7-867E-F31B391E53CC::net6.0::DigitalTwinTests.DigitalTwinQueryTests.GetWineRackGraph&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>

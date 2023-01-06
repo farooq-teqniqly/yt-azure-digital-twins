@@ -5,7 +5,11 @@ VisualStudioVersion = 17.2.32630.192
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartWineRack", "SmartWineRack\SmartWineRack.csproj", "{010BC268-EE21-45CE-B3BE-5B994763F9F4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WineRackMessageProcessor", "WineRackMessageProcessor\WineRackMessageProcessor.csproj", "{12F82399-CCBD-4C95-A2DF-7EE3834EF4B9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WineRackMessageProcessor", "WineRackMessageProcessor\WineRackMessageProcessor.csproj", "{12F82399-CCBD-4C95-A2DF-7EE3834EF4B9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DigitalTwinTests", "DigitalTwinTests\DigitalTwinTests.csproj", "{EBCC5F2B-E065-4AE7-867E-F31B391E53CC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IntegrationTests", "IntegrationTests\IntegrationTests.csproj", "{8260BD48-3D4A-4394-9B08-CA2760452983}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +25,14 @@ Global
 		{12F82399-CCBD-4C95-A2DF-7EE3834EF4B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{12F82399-CCBD-4C95-A2DF-7EE3834EF4B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{12F82399-CCBD-4C95-A2DF-7EE3834EF4B9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EBCC5F2B-E065-4AE7-867E-F31B391E53CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EBCC5F2B-E065-4AE7-867E-F31B391E53CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EBCC5F2B-E065-4AE7-867E-F31B391E53CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EBCC5F2B-E065-4AE7-867E-F31B391E53CC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8260BD48-3D4A-4394-9B08-CA2760452983}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8260BD48-3D4A-4394-9B08-CA2760452983}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8260BD48-3D4A-4394-9B08-CA2760452983}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8260BD48-3D4A-4394-9B08-CA2760452983}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
