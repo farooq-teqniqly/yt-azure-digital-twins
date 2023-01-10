@@ -41,7 +41,6 @@ public class RemoveBottleCommandTests
         bottle.Slot.Should().Be(slot);
         bottle.UpcCode.Should().Be(upcCode);
 
-        mockRepository.Verify(m => m.RemoveBottle(It.Is<int>(s =>
-            s == slot)));
+        mockRepository.Verify(m => m.RemoveBottle(slot));
     }
 }

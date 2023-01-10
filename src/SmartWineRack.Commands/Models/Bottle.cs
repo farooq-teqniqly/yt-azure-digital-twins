@@ -8,16 +8,14 @@ namespace SmartWineRack.Commands.Models
 {
     public class Bottle
     {
-        private readonly int _slot;
-        private readonly string _upcCode;
-
         public Bottle(int slot, string upcCode)
         {
-            _slot = slot;
-            _upcCode = upcCode;
+            Slot = slot;
+            UpcCode = upcCode;
         }
 
-        public string UpcCode => _upcCode;
-        public int Slot => _slot;
+        public string UpcCode { get; }
+
+        public int Slot { get; }
     }
 }

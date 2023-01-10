@@ -13,7 +13,11 @@ namespace SmartWineRack.Commands.Models
         public string DeviceName { get; }
         public string IoTProviderConnectionString { get; }
 
-        public WineRackConfig(int slotCount, string ownerName, string deviceName, string ioTProviderConnectionString)
+        public WineRackConfig(
+            int slotCount, 
+            string ownerName, 
+            string deviceName, 
+            string ioTProviderConnectionString)
         {
             SlotCount = slotCount;
             OwnerName = ownerName;

@@ -16,14 +16,12 @@ namespace SmartWineRackTests.CommandTests;
 public class OnboardingCommandTests
 {
 
-    private readonly OnboardingTestParams DefaultTestParams = new OnboardingTestParams
-    {
-        DeviceName = "winerack001",
-        IotProviderConnectionString = "iot_hub_conn_str",
-        OwnerName = "The Wine Place",
-        SlotCount = 4
+    private readonly OnboardingTestParams DefaultTestParams = new (
+            4, 
+            "The Wine Place", 
+            "winerack001", 
+            "iot_hub_conn_str");
 
-    };
 
     [Fact]
     public async Task OnboardCommand_Returns_WineRack_Config()
