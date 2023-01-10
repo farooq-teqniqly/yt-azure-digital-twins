@@ -2,7 +2,16 @@
 {
     public class BottleDto
     {
-        public string UpcCode { get; set; }
+
+        private string? upcCode;
+
+        public string UpcCode
+        {
+            get => upcCode ?? throw new ArgumentNullException(nameof(UpcCode));
+
+            set => upcCode = value ?? throw new ArgumentNullException(nameof(UpcCode));
+        }
+
         public int Slot { get; set; }
     }
 }
