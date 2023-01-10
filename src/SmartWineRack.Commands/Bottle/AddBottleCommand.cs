@@ -1,20 +1,33 @@
-﻿using SmartWineRack.Commands.Models;
-using SmartWineRack.Data.Dto;
-using SmartWineRack.Data.Repositories;
+﻿// <copyright file="AddBottleCommand.cs" company="Teqniqly">
+// Copyright (c) Teqniqly. All rights reserved.
+// </copyright>
 
 namespace SmartWineRack.Commands.Bottle
 {
+    using SmartWineRack.Commands.Models;
+    using SmartWineRack.Data.Dto;
+    using SmartWineRack.Data.Repositories;
+
+    /// <summary>
+    /// A command that handles adding a bottle to the wine rack.
+    /// </summary>
     public class AddBottleCommand : Command<BottleSnapshot>
     {
-        public AddBottleCommand(IRepository repository) : base(repository)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AddBottleCommand"/> class.
+        /// </summary>
+        /// <param name="repository">The repository.</param>
+        public AddBottleCommand(IRepository repository)
+            : base(repository)
         {
         }
 
+        /// <inheritdoc />
         public override async Task<BottleSnapshot> Execute(IDictionary<string, object>? parameters = null)
         {
-            await Repository.AddBottle(new BottleDto {Slot = (int)parameters["slot"], UpcCode = (string)parameters["upcCode"] });
+            await this.Repository.AddBottle(new BottleDto { Slot = (int)parameters["slot"], UpcCode = (string)parameters["upcCode"] });
 
-            var bottleDtos = await Repository.GetBottles();
+            var bottleDtos = await this.Repository.GetBottles();
             var bottles = bottleDtos.Select(bottleDto => new Models.Bottle(bottleDto.Slot, bottleDto.UpcCode)).ToList();
 
             return new BottleSnapshot(bottles);

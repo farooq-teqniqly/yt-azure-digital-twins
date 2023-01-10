@@ -1,18 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Moq;
-using SmartWineRack.Commands;
-using SmartWineRack.Commands.Bottle;
-using SmartWineRack.Data.Dto;
-using SmartWineRack.Data.Repositories;
-using Xunit;
+﻿// <copyright file="AddBottleCommandTests.cs" company="Teqniqly">
+// Copyright (c) Teqniqly. All rights reserved.
+// </copyright>
 
 namespace SmartWineRackTests.CommandTests
 {
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using FluentAssertions;
+    using Moq;
+    using SmartWineRack.Commands.Bottle;
+    using SmartWineRack.Data.Dto;
+    using SmartWineRack.Data.Repositories;
+    using Xunit;
+
     public class AddBottleCommandTests
     {
         [Fact]
@@ -28,15 +29,15 @@ namespace SmartWineRackTests.CommandTests
             };
 
             var mockRepository = new Mock<IRepository>();
-            
+
             mockRepository.Setup(r => r.GetBottles()).ReturnsAsync(new List<BottleDto>
             {
-                new() { Slot = slot, UpcCode = upcCode }
+                new () { Slot = slot, UpcCode = upcCode },
             });
 
             var command = new AddBottleCommand(mockRepository.Object);
             var snapshot = await command.Execute(commandParams);
-            
+
             snapshot.Bottles.Count().Should().Be(1);
 
             var bottle = snapshot.Bottles.Single();

@@ -1,46 +1,50 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Moq;
-using SmartWineRack.Commands;
-using SmartWineRack.Commands.Bottle;
-using SmartWineRack.Data.Dto;
-using SmartWineRack.Data.Repositories;
-using Xunit;
+﻿// <copyright file="RemoveBottleCommandTests.cs" company="Teqniqly">
+// Copyright (c) Teqniqly. All rights reserved.
+// </copyright>
 
-namespace SmartWineRackTests.CommandTests;
-
-public class RemoveBottleCommandTests
+namespace SmartWineRackTests.CommandTests
 {
-    [Fact]
-    public async Task RemoveBottleCommand_Returns_Bottle_Snapshot()
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using FluentAssertions;
+    using Moq;
+    using SmartWineRack.Commands.Bottle;
+    using SmartWineRack.Data.Dto;
+    using SmartWineRack.Data.Repositories;
+    using Xunit;
+
+    public class RemoveBottleCommandTests
     {
-        var slot = 1;
-        var upcCode = "abc123";
-
-        var commandParams = new Dictionary<string, object>
+        [Fact]
+        public async Task RemoveBottleCommand_Returns_Bottle_Snapshot()
         {
-            { "slot", slot },
-        };
+            var slot = 1;
+            var upcCode = "abc123";
 
-        var mockRepository = new Mock<IRepository>();
+            var commandParams = new Dictionary<string, object>
+            {
+                { "slot", slot },
+            };
 
-        mockRepository.Setup(r => r.GetBottles()).ReturnsAsync(new List<BottleDto>
-        {
-            new() { Slot = slot, UpcCode = upcCode }
-        });
+            var mockRepository = new Mock<IRepository>();
 
-        var command = new SellBottleCommand(mockRepository.Object);
-        var snapshot = await command.Execute(commandParams);
+            mockRepository.Setup(r => r.GetBottles()).ReturnsAsync(new List<BottleDto>
+            {
+                new () { Slot = slot, UpcCode = upcCode },
+            });
 
-        snapshot.Bottles.Count().Should().Be(1);
+            var command = new SellBottleCommand(mockRepository.Object);
+            var snapshot = await command.Execute(commandParams);
 
-        var bottle = snapshot.Bottles.Single();
+            snapshot.Bottles.Count().Should().Be(1);
 
-        bottle.Slot.Should().Be(slot);
-        bottle.UpcCode.Should().Be(upcCode);
+            var bottle = snapshot.Bottles.Single();
 
-        mockRepository.Verify(m => m.RemoveBottle(slot));
+            bottle.Slot.Should().Be(slot);
+            bottle.UpcCode.Should().Be(upcCode);
+
+            mockRepository.Verify(m => m.RemoveBottle(slot));
+        }
     }
 }

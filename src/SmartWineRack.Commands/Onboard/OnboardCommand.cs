@@ -1,24 +1,35 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using SmartWineRack.Commands.Models;
-using SmartWineRack.Commands.Services;
-using SmartWineRack.Data.Dto;
-using SmartWineRack.Data.Repositories;
+﻿// <copyright file="OnboardCommand.cs" company="Teqniqly">
+// Copyright (c) Teqniqly. All rights reserved.
+// </copyright>
 
 namespace SmartWineRack.Commands.Onboard
 {
+    using System.Collections.Generic;
+    using System.Threading.Tasks;
+    using SmartWineRack.Commands.Models;
+    using SmartWineRack.Commands.Services;
+    using SmartWineRack.Data.Dto;
+    using SmartWineRack.Data.Repositories;
+
+    /// <summary>
+    /// A command that handles onboarding a wine rack to the IoT provider.
+    /// </summary>
     public class OnboardCommand : Command<WineRackConfig>
     {
-        private readonly IDeviceRegistrationService _deviceRegistrationService;
+        private readonly IDeviceRegistrationService deviceRegistrationService;
 
-        public OnboardCommand(IRepository repository, IDeviceRegistrationService deviceRegistrationService) : base(repository)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OnboardCommand"/> class.
+        /// </summary>
+        /// <param name="repository">The repository.</param>
+        /// <param name="deviceRegistrationService">The device registration service.</param>
+        public OnboardCommand(IRepository repository, IDeviceRegistrationService deviceRegistrationService)
+            : base(repository)
         {
-            _deviceRegistrationService = deviceRegistrationService;
+            this.deviceRegistrationService = deviceRegistrationService;
         }
 
+        /// <inheritdoc />
         public override async Task<WineRackConfig> Execute(IDictionary<string, object>? parameters = null)
         {
             var deviceName = (string)parameters["deviceName"];
@@ -29,12 +40,12 @@ namespace SmartWineRack.Commands.Onboard
                     DeviceName = deviceName,
                     OwnerName = (string)parameters["ownerName"],
                     SlotCount = (int)parameters["slotCount"],
-                    IotProviderConnectionString = (string)parameters["iotProviderConnectionString"]
+                    IotProviderConnectionString = (string)parameters["iotProviderConnectionString"],
                 });
 
-            await this._deviceRegistrationService.RegisterDevice(deviceName);
+            await this.deviceRegistrationService.RegisterDevice(deviceName);
 
-            var configDto = await Repository.GetConfig();
+            var configDto = await this.Repository.GetConfig();
 
             return new WineRackConfig(configDto.SlotCount, configDto.OwnerName, configDto.DeviceName, configDto.IotProviderConnectionString);
         }

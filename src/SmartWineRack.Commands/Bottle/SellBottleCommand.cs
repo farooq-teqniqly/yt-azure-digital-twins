@@ -1,21 +1,35 @@
-﻿using SmartWineRack.Commands.Models;
-using SmartWineRack.Data.Repositories;
+﻿// <copyright file="SellBottleCommand.cs" company="Teqniqly">
+// Copyright (c) Teqniqly. All rights reserved.
+// </copyright>
 
-namespace SmartWineRack.Commands.Bottle;
-
-public class SellBottleCommand : Command<BottleSnapshot>
+namespace SmartWineRack.Commands.Bottle
 {
-    public SellBottleCommand(IRepository repository) : base(repository)
+    using SmartWineRack.Commands.Models;
+    using SmartWineRack.Data.Repositories;
+
+    /// <summary>
+    /// A command that handles selling a bottle.
+    /// </summary>
+    public class SellBottleCommand : Command<BottleSnapshot>
     {
-    }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SellBottleCommand"/> class.
+        /// </summary>
+        /// <param name="repository">The repository.</param>
+        public SellBottleCommand(IRepository repository)
+            : base(repository)
+        {
+        }
 
-    public override async Task<BottleSnapshot> Execute(IDictionary<string, object>? parameters = null)
-    {
-        await Repository.RemoveBottle((int)parameters["slot"]);
+        /// <inheritdoc />
+        public override async Task<BottleSnapshot> Execute(IDictionary<string, object>? parameters = null)
+        {
+            await this.Repository.RemoveBottle((int)parameters["slot"]);
 
-        var bottleDtos = await Repository.GetBottles();
-        var bottles = bottleDtos.Select(bottleDto => new Models.Bottle(bottleDto.Slot, bottleDto.UpcCode)).ToList();
+            var bottleDtos = await this.Repository.GetBottles();
+            var bottles = bottleDtos.Select(bottleDto => new Models.Bottle(bottleDto.Slot, bottleDto.UpcCode)).ToList();
 
-        return new BottleSnapshot(bottles);
+            return new BottleSnapshot(bottles);
+        }
     }
 }

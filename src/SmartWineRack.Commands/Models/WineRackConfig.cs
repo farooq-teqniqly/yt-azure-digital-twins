@@ -1,28 +1,51 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿// <copyright file="WineRackConfig.cs" company="Teqniqly">
+// Copyright (c) Teqniqly. All rights reserved.
+// </copyright>
 
 namespace SmartWineRack.Commands.Models
 {
+    /// <summary>
+    /// The wine rack configuration.
+    /// </summary>
     public class WineRackConfig
     {
-        public int SlotCount { get; }
-        public string OwnerName { get; }
-        public string DeviceName { get; }
-        public string IoTProviderConnectionString { get; }
-
+        /// <summary>
+        /// Initializes a new instance of the <see cref="WineRackConfig"/> class.
+        /// </summary>
+        /// <param name="slotCount">The number of slots.</param>
+        /// <param name="ownerName">The owner name.</param>
+        /// <param name="deviceName">The wine rack name.</param>
+        /// <param name="ioTProviderConnectionString">The connection string to the IoT provider.</param>
         public WineRackConfig(
-            int slotCount, 
-            string ownerName, 
-            string deviceName, 
+            int slotCount,
+            string ownerName,
+            string deviceName,
             string ioTProviderConnectionString)
         {
-            SlotCount = slotCount;
-            OwnerName = ownerName;
-            DeviceName = deviceName;
-            IoTProviderConnectionString = ioTProviderConnectionString;
+            this.SlotCount = slotCount;
+            this.OwnerName = ownerName;
+            this.DeviceName = deviceName;
+            this.IoTProviderConnectionString = ioTProviderConnectionString;
         }
+
+        /// <summary>
+        /// Gets the number of slots.
+        /// </summary>
+        public int SlotCount { get; }
+
+        /// <summary>
+        /// Gets the owner name.
+        /// </summary>
+        public string OwnerName { get; }
+
+        /// <summary>
+        /// Gets the wine rack name.
+        /// </summary>
+        public string DeviceName { get; }
+
+        /// <summary>
+        /// Gets the connection string to the IoT provider.
+        /// </summary>
+        public string IoTProviderConnectionString { get; }
     }
 }

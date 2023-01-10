@@ -1,30 +1,51 @@
-﻿namespace SmartWineRack.Data.Dto;
+﻿// <copyright file="WineRackConfigDto.cs" company="Teqniqly">
+// Copyright (c) Teqniqly. All rights reserved.
+// </copyright>
 
-public class WineRackConfigDto
+namespace SmartWineRack.Data.Dto
 {
-    private string? ownerName;
-    private string? deviceName;
-    private string? iotProviderConnectionString;
-
-    public int SlotCount { get; set; }
-    public string OwnerName
+    /// <summary>
+    /// The wine rack configuration DTO.
+    /// </summary>
+    public class WineRackConfigDto
     {
-        get => ownerName ?? throw new ArgumentNullException(nameof(OwnerName));
+        private string? ownerName;
+        private string? deviceName;
+        private string? iotProviderConnectionString;
 
-        set => ownerName = value ?? throw new ArgumentNullException(nameof(OwnerName));
-    }
+        /// <summary>
+        /// Gets or sets the number of slots.
+        /// </summary>
+        public int SlotCount { get; set; }
 
-    public string DeviceName
-    {
-        get => deviceName ?? throw new ArgumentNullException(nameof(DeviceName));
+        /// <summary>
+        /// Gets or sets the owner name.
+        /// </summary>
+        public string OwnerName
+        {
+            get => this.ownerName ?? throw new ArgumentNullException(nameof(this.OwnerName));
 
-        set => deviceName = value ?? throw new ArgumentNullException(nameof(DeviceName));
-    }
+            set => this.ownerName = value ?? throw new ArgumentNullException(nameof(this.OwnerName));
+        }
 
-    public string IotProviderConnectionString
-    {
-        get => iotProviderConnectionString ?? throw new ArgumentNullException(nameof(IotProviderConnectionString));
+        /// <summary>
+        /// Gets or sets the wine rack name.
+        /// </summary>
+        public string DeviceName
+        {
+            get => this.deviceName ?? throw new ArgumentNullException(nameof(this.DeviceName));
 
-        set => iotProviderConnectionString = value ?? throw new ArgumentNullException(nameof(IotProviderConnectionString));
+            set => this.deviceName = value ?? throw new ArgumentNullException(nameof(this.DeviceName));
+        }
+
+        /// <summary>
+        /// Gets or sets the connection string to the IoT provider.
+        /// </summary>
+        public string IotProviderConnectionString
+        {
+            get => this.iotProviderConnectionString ?? throw new ArgumentNullException(nameof(this.IotProviderConnectionString));
+
+            set => this.iotProviderConnectionString = value ?? throw new ArgumentNullException(nameof(this.IotProviderConnectionString));
+        }
     }
 }
