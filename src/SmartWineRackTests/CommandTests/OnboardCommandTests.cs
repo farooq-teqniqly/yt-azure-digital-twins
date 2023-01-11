@@ -1,5 +1,5 @@
 ﻿// <copyright file="OnboardCommandTests.cs" company="Teqniqly">
-// Copyright (c) Teqniqly. All rights reserved.
+// Copyright (c) Teqniqly
 // </copyright>
 
 namespace SmartWineRackTests.CommandTests
@@ -9,6 +9,7 @@ namespace SmartWineRackTests.CommandTests
     using System.Threading.Tasks;
     using FluentAssertions;
     using Moq;
+    using SmartWineRack.Commands.Bottle;
     using SmartWineRack.Commands.Models;
     using SmartWineRack.Commands.Onboard;
     using SmartWineRack.Commands.Services;
@@ -23,6 +24,50 @@ namespace SmartWineRackTests.CommandTests
             "The Wine Place",
             "winerack001",
             "iot_hub_conn_str");
+
+        [Fact]
+        public async Task When_Parameters_Dict_Null_Throw_Exception()
+        {
+            var mockRepository = new Mock<IRepository>();
+            var mockDeviceRegistrationService = new Mock<IDeviceRegistrationService>();
+            var command = new OnboardCommand(mockRepository.Object, mockDeviceRegistrationService.Object);
+
+            Func<Task> act = () => command.Execute();
+
+            await act.Should().ThrowAsync<ArgumentNullException>();
+        }
+
+        [Theory]
+        [InlineData("nnnDeviceName", "dn", "ownerName", "on", "slotCount", "1", "iotProviderConnectionString", "cn")]
+        [InlineData("deviceName", "dn", "nnnOwnerName", "on", "slotCount", "1", "iotProviderConnectionString", "cn")]
+        [InlineData("deviceName", "dn", "ownerName", "on", "nnnSlotCount", "1", "iotProviderConnectionString", "cn")]
+        [InlineData("deviceName", "dn", "ownerName", "on", "slotCount", "1", "nnnIotProviderConnectionString", "cn")]
+        public async Task When_Required_Params_Missing_Throw_Exception(
+            string key1,
+            string val1,
+            string key2,
+            string val2,
+            string key3,
+            string val3,
+            string key4,
+            string val4)
+        {
+            var commandParams = new Dictionary<string, object>
+            {
+                { key1, val1 },
+                { key2, val2 },
+                { key3, val3 },
+                { key4, val4 },
+            };
+
+            var mockRepository = new Mock<IRepository>();
+            var mockDeviceRegistrationService = new Mock<IDeviceRegistrationService>();
+            var command = new OnboardCommand(mockRepository.Object, mockDeviceRegistrationService.Object);
+
+            Func<Task> act = () => command.Execute(commandParams);
+
+            await act.Should().ThrowAsync<InvalidOperationException>();
+        }
 
         [Fact]
         public async Task OnboardCommand_Returns_WineRack_Config()

@@ -1,5 +1,5 @@
 ﻿// <copyright file="OnboardCommand.cs" company="Teqniqly">
-// Copyright (c) Teqniqly. All rights reserved.
+// Copyright (c) Teqniqly
 // </copyright>
 
 namespace SmartWineRack.Commands.Onboard
@@ -32,7 +32,13 @@ namespace SmartWineRack.Commands.Onboard
         /// <inheritdoc />
         public override async Task<WineRackConfig> Execute(IDictionary<string, object>? parameters = null)
         {
-            var deviceName = (string)parameters["deviceName"];
+            parameters.EnsureNotNull(nameof(parameters));
+            parameters!.EnsureKey("deviceName");
+            parameters!.EnsureKey("ownerName");
+            parameters!.EnsureKey("slotCount");
+            parameters!.EnsureKey("iotProviderConnectionString");
+
+            var deviceName = (string)parameters!["deviceName"];
 
             await this.Repository.SaveConfig(
                 new WineRackConfigDto

@@ -1,5 +1,5 @@
 ﻿// <copyright file="AddBottleCommand.cs" company="Teqniqly">
-// Copyright (c) Teqniqly. All rights reserved.
+// Copyright (c) Teqniqly
 // </copyright>
 
 namespace SmartWineRack.Commands.Bottle
@@ -25,7 +25,11 @@ namespace SmartWineRack.Commands.Bottle
         /// <inheritdoc />
         public override async Task<BottleSnapshot> Execute(IDictionary<string, object>? parameters = null)
         {
-            await this.Repository.AddBottle(new BottleDto { Slot = (int)parameters["slot"], UpcCode = (string)parameters["upcCode"] });
+            parameters.EnsureNotNull(nameof(parameters));
+            parameters!.EnsureKey("slot");
+            parameters!.EnsureKey("upcCode");
+
+            await this.Repository.AddBottle(new BottleDto { Slot = (int)parameters!["slot"], UpcCode = (string)parameters["upcCode"] });
 
             var bottleDtos = await this.Repository.GetBottles();
             var bottles = bottleDtos.Select(bottleDto => new Models.Bottle(bottleDto.Slot, bottleDto.UpcCode)).ToList();

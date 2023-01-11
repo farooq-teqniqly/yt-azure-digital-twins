@@ -1,5 +1,5 @@
 ﻿// <copyright file="Program.cs" company="Teqniqly">
-// Copyright (c) Teqniqly. All rights reserved.
+// Copyright (c) Teqniqly
 // </copyright>
 
 namespace SmartWineRack

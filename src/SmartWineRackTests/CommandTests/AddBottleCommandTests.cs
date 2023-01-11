@@ -1,9 +1,10 @@
 ﻿// <copyright file="AddBottleCommandTests.cs" company="Teqniqly">
-// Copyright (c) Teqniqly. All rights reserved.
+// Copyright (c) Teqniqly
 // </copyright>
 
 namespace SmartWineRackTests.CommandTests
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
@@ -16,6 +17,36 @@ namespace SmartWineRackTests.CommandTests
 
     public class AddBottleCommandTests
     {
+        [Fact]
+        public async Task When_Parameters_Dict_Null_Throw_Exception()
+        {
+            var mockRepository = new Mock<IRepository>();
+            var command = new AddBottleCommand(mockRepository.Object);
+
+            Func<Task> act = () => command.Execute();
+
+            await act.Should().ThrowAsync<ArgumentNullException>();
+        }
+
+        [Theory]
+        [InlineData("foo", "12345", "upcCode", "12345")]
+        [InlineData("slot", "1", "foo", "12345")]
+        public async Task When_Required_Params_Missing_Throw_Exception(string key1, string val1, string key2, string val2)
+        {
+            var commandParams = new Dictionary<string, object>
+            {
+                { key1, val1 },
+                { key2, val2 },
+            };
+
+            var mockRepository = new Mock<IRepository>();
+            var command = new AddBottleCommand(mockRepository.Object);
+
+            Func<Task> act = () => command.Execute(commandParams);
+
+            await act.Should().ThrowAsync<InvalidOperationException>();
+        }
+
         [Fact]
         public async Task AddBottleCommand_Returns_Bottle_Snapshot()
         {

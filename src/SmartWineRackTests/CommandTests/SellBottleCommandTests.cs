@@ -1,6 +1,8 @@
-﻿// <copyright file="RemoveBottleCommandTests.cs" company="Teqniqly">
-// Copyright (c) Teqniqly. All rights reserved.
+﻿// <copyright file="SellBottleCommandTests.cs" company="Teqniqly">
+// Copyright (c) Teqniqly
 // </copyright>
+
+using System;
 
 namespace SmartWineRackTests.CommandTests
 {
@@ -14,8 +16,36 @@ namespace SmartWineRackTests.CommandTests
     using SmartWineRack.Data.Repositories;
     using Xunit;
 
-    public class RemoveBottleCommandTests
+    public class SellBottleCommandTests
     {
+        [Fact]
+        public async Task When_Parameters_Dict_Null_Throw_Exception()
+        {
+            var mockRepository = new Mock<IRepository>();
+            var command = new SellBottleCommand(mockRepository.Object);
+
+            Func<Task> act = () => command.Execute();
+
+            await act.Should().ThrowAsync<ArgumentNullException>();
+        }
+
+        [Theory]
+        [InlineData("nnnSlot", "1")]
+        public async Task When_Required_Params_Missing_Throw_Exception(string key1, string val1)
+        {
+            var commandParams = new Dictionary<string, object>
+            {
+                { key1, val1 },
+            };
+
+            var mockRepository = new Mock<IRepository>();
+            var command = new SellBottleCommand(mockRepository.Object);
+
+            Func<Task> act = () => command.Execute(commandParams);
+
+            await act.Should().ThrowAsync<InvalidOperationException>();
+        }
+
         [Fact]
         public async Task RemoveBottleCommand_Returns_Bottle_Snapshot()
         {

@@ -1,5 +1,5 @@
 ﻿// <copyright file="OnboardCommandTestParams.cs" company="Teqniqly">
-// Copyright (c) Teqniqly. All rights reserved.
+// Copyright (c) Teqniqly
 // </copyright>
 
 namespace SmartWineRackTests.CommandTests

@@ -1,5 +1,5 @@
 ﻿// <copyright file="SellBottleCommand.cs" company="Teqniqly">
-// Copyright (c) Teqniqly. All rights reserved.
+// Copyright (c) Teqniqly
 // </copyright>
 
 namespace SmartWineRack.Commands.Bottle
@@ -24,7 +24,10 @@ namespace SmartWineRack.Commands.Bottle
         /// <inheritdoc />
         public override async Task<BottleSnapshot> Execute(IDictionary<string, object>? parameters = null)
         {
-            await this.Repository.RemoveBottle((int)parameters["slot"]);
+            parameters.EnsureNotNull(nameof(parameters));
+            parameters!.EnsureKey("slot");
+
+            await this.Repository.RemoveBottle((int)parameters!["slot"]);
 
             var bottleDtos = await this.Repository.GetBottles();
             var bottles = bottleDtos.Select(bottleDto => new Models.Bottle(bottleDto.Slot, bottleDto.UpcCode)).ToList();
