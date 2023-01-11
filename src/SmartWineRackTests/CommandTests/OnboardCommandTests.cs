@@ -28,7 +28,7 @@ namespace SmartWineRackTests.CommandTests
         [Fact]
         public void When_Repository_Null_Throw_Exception()
         {
-            var mockDeviceRegistrationService = new Mock<IDeviceRegistrationService>();
+            var mockDeviceRegistrationService = new Mock<IDeviceService>();
             var act = () => new OnboardCommand(null!, mockDeviceRegistrationService.Object);
 
             act.Should().Throw<ArgumentNullException>();
@@ -47,7 +47,7 @@ namespace SmartWineRackTests.CommandTests
         public async Task When_Parameters_Dict_Null_Throw_Exception()
         {
             var mockRepository = new Mock<IRepository>();
-            var mockDeviceRegistrationService = new Mock<IDeviceRegistrationService>();
+            var mockDeviceRegistrationService = new Mock<IDeviceService>();
             var command = new OnboardCommand(mockRepository.Object, mockDeviceRegistrationService.Object);
 
             Func<Task> act = () => command.Execute();
@@ -79,7 +79,7 @@ namespace SmartWineRackTests.CommandTests
             };
 
             var mockRepository = new Mock<IRepository>();
-            var mockDeviceRegistrationService = new Mock<IDeviceRegistrationService>();
+            var mockDeviceRegistrationService = new Mock<IDeviceService>();
             var command = new OnboardCommand(mockRepository.Object, mockDeviceRegistrationService.Object);
 
             Func<Task> act = () => command.Execute(commandParams);
@@ -113,7 +113,7 @@ namespace SmartWineRackTests.CommandTests
 
         private async Task ExecuteOnboardingCommand(
             OnboardCommandTestParams testParams,
-            Action<WineRackConfig, Mock<IRepository>, Mock<IDeviceRegistrationService>>? verifyAction = null)
+            Action<WineRackConfig, Mock<IRepository>, Mock<IDeviceService>>? verifyAction = null)
         {
             var commandParams = new Dictionary<string, object>
             {
@@ -133,7 +133,7 @@ namespace SmartWineRackTests.CommandTests
                 IotProviderConnectionString = testParams.IotProviderConnectionString,
             });
 
-            var mockDeviceRegistrationService = new Mock<IDeviceRegistrationService>();
+            var mockDeviceRegistrationService = new Mock<IDeviceService>();
 
             var command = new OnboardCommand(mockRepository.Object, mockDeviceRegistrationService.Object);
 

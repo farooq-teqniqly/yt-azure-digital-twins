@@ -16,19 +16,19 @@ namespace SmartWineRack.Commands.Onboard
     /// </summary>
     public class OnboardCommand : Command<WineRackConfig>
     {
-        private readonly IDeviceRegistrationService deviceRegistrationService;
+        private readonly IDeviceService deviceService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="OnboardCommand"/> class.
         /// </summary>
         /// <param name="repository">The repository.</param>
-        /// <param name="deviceRegistrationService">The device registration service.</param>
-        public OnboardCommand(IRepository repository, IDeviceRegistrationService deviceRegistrationService)
+        /// <param name="deviceService">The device registration service.</param>
+        public OnboardCommand(IRepository repository, IDeviceService deviceService)
             : base(repository)
         {
-            deviceRegistrationService.EnsureNotNull(nameof(deviceRegistrationService));
+            deviceService.EnsureNotNull(nameof(deviceService));
 
-            this.deviceRegistrationService = deviceRegistrationService;
+            this.deviceService = deviceService;
         }
 
         /// <inheritdoc />
@@ -51,7 +51,7 @@ namespace SmartWineRack.Commands.Onboard
                     IotProviderConnectionString = (string)parameters["iotProviderConnectionString"],
                 });
 
-            await this.deviceRegistrationService.RegisterDevice(deviceName);
+            await this.deviceService.RegisterDevice(deviceName);
 
             var configDto = await this.Repository.GetConfig();
 

@@ -1,4 +1,4 @@
-﻿// <copyright file="IDeviceRegistrationService.cs" company="Teqniqly">
+﻿// <copyright file="IDeviceService.cs" company="Teqniqly">
 // Copyright (c) Teqniqly
 // </copyright>
 
@@ -7,9 +7,9 @@ namespace SmartWineRack.Commands.Services
     using System.Threading.Tasks;
 
     /// <summary>
-    /// The interface for device registration services.
+    /// The interface for IoT device services.
     /// </summary>
-    public interface IDeviceRegistrationService
+    public interface IDeviceService
     {
         /// <summary>
         /// Registers a device in the IoT provider.
