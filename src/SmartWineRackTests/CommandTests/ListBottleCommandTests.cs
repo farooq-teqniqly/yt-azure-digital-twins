@@ -4,6 +4,7 @@
 
 namespace SmartWineRackTests.CommandTests
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
@@ -16,6 +17,14 @@ namespace SmartWineRackTests.CommandTests
 
     public class ListBottleCommandTests
     {
+        [Fact]
+        public void When_Repository_Null_Throw_Exception()
+        {
+            var act = () => new ListBottleCommand(null!);
+
+            act.Should().Throw<ArgumentNullException>();
+        }
+
         [Fact]
         public async Task ListBottleCommand_Returns_Bottle_Snapshot()
         {

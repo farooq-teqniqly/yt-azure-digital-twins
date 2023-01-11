@@ -26,6 +26,24 @@ namespace SmartWineRackTests.CommandTests
             "iot_hub_conn_str");
 
         [Fact]
+        public void When_Repository_Null_Throw_Exception()
+        {
+            var mockDeviceRegistrationService = new Mock<IDeviceRegistrationService>();
+            var act = () => new OnboardCommand(null!, mockDeviceRegistrationService.Object);
+
+            act.Should().Throw<ArgumentNullException>();
+        }
+
+        [Fact]
+        public void When_Device_Registration_Service_Null_Throw_Exception()
+        {
+            var mockRepository = new Mock<IRepository>();
+            var act = () => new OnboardCommand(mockRepository.Object, null!);
+
+            act.Should().Throw<ArgumentNullException>();
+        }
+
+        [Fact]
         public async Task When_Parameters_Dict_Null_Throw_Exception()
         {
             var mockRepository = new Mock<IRepository>();

@@ -26,6 +26,8 @@ namespace SmartWineRack.Commands.Onboard
         public OnboardCommand(IRepository repository, IDeviceRegistrationService deviceRegistrationService)
             : base(repository)
         {
+            deviceRegistrationService.EnsureNotNull(nameof(deviceRegistrationService));
+
             this.deviceRegistrationService = deviceRegistrationService;
         }
 

@@ -2,10 +2,9 @@
 // Copyright (c) Teqniqly
 // </copyright>
 
-using System;
-
 namespace SmartWineRackTests.CommandTests
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
@@ -18,6 +17,14 @@ namespace SmartWineRackTests.CommandTests
 
     public class SellBottleCommandTests
     {
+        [Fact]
+        public void When_Repository_Null_Throw_Exception()
+        {
+            var act = () => new SellBottleCommand(null!);
+
+            act.Should().Throw<ArgumentNullException>();
+        }
+
         [Fact]
         public async Task When_Parameters_Dict_Null_Throw_Exception()
         {

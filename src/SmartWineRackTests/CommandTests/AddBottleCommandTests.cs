@@ -18,6 +18,14 @@ namespace SmartWineRackTests.CommandTests
     public class AddBottleCommandTests
     {
         [Fact]
+        public void When_Repository_Null_Throw_Exception()
+        {
+            var act = () => new AddBottleCommand(null!);
+
+            act.Should().Throw<ArgumentNullException>();
+        }
+
+        [Fact]
         public async Task When_Parameters_Dict_Null_Throw_Exception()
         {
             var mockRepository = new Mock<IRepository>();

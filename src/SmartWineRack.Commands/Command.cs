@@ -18,6 +18,8 @@ namespace SmartWineRack.Commands
         /// <param name="repository">The repository.</param>
         protected Command(IRepository repository)
         {
+            repository.EnsureNotNull(nameof(repository));
+
             this.Repository = repository;
         }
 
